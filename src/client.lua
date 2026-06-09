@@ -1553,6 +1553,28 @@ local function nearestKillerDist()
     return best
 end
 
+-- ── Killer animation tracker ────────────────────────────────
+-- Fire parry HANYA saat killer baru mulai play animation (= attack swing),
+-- bukan cuma karena deket. Window parry game 0.8s, jadi timing harus tepat.
+local killerLastAnimTime = 0
+local function attachKillerAnimWatcher(p)
+    if p == LP then return end
+    local function attach(c)
+        local hum = c:WaitForChild("Humanoid", 5)
+        if not hum then return end
+        hum.AnimationPlayed:Connect(function()
+            local team = p.Team and p.Team.Name or ""
+            if team:lower():find("killer") then
+                killerLastAnimTime = tick()
+            end
+        end)
+    end
+    if p.Character then attach(p.Character) end
+    p.CharacterAdded:Connect(function(c) task.wait(0.3); attach(c) end)
+end
+for _, p in ipairs(Players:GetPlayers()) do attachKillerAnimWatcher(p) end
+Players.PlayerAdded:Connect(attachKillerAnimWatcher)
+
 local function dbgParry(...)
     if CFG.parryDebug then print("[PARRY]", ...) end
 end
@@ -1590,8 +1612,13 @@ task.spawn(function()
         if not hasParryWeapon() then logReasonOnce("no-parry-weapon-equipped") continue end
         local kd = nearestKillerDist()
         if kd > CFG.parryRange then
-            -- log dist saat killer dekat tapi belum dalam range (debug visibility)
             if kd < 15 then dbgParry("killer dist=" .. string.format("%.1f", kd) .. " (range=" .. CFG.parryRange .. ")") end
+            continue
+        end
+        -- ATTACK DETECTION: fire HANYA pas killer baru mulai animation (= swing)
+        -- killerLastAnimTime di-update via AnimationPlayed listener di atas
+        if tick() - killerLastAnimTime > 0.3 then
+            dbgParry("killer in range (" .. string.format("%.1f", kd) .. ") tapi tidak swing — hold")
             continue
         end
         lastLogReason = ""
