@@ -168,6 +168,13 @@ local CFG = {
     autoUnhookEnabled = false,
     unhookTick        = 0.15,
 
+    -- Auto Parry (saat killer attack lo dekat, equip Parry Dagger)
+    -- Parry window game = 800ms; cooldown 0.9s antara fire biar window cycle bersih
+    autoParryEnabled  = false,
+    parryRange        = 6,      -- killer dist <= ini → fire RMB
+    parryCooldown     = 0.9,    -- min jeda antara parry attempt
+    parryTick         = 0.05,
+
     -- KILLER FEATURES ────────────────────────────────────
     -- Auto-Attack M1 (saat survivor melee range + facing)
     autoAttackEnabled = false,
@@ -1443,32 +1450,125 @@ task.spawn(function()
 end)
 
 -- ============================================================
---  STEP 6.11: AUTO UNHOOK SELF
---  Saat karakter sendiri di-hook, auto interact + spam space (struggle).
+--  STEP 6.11: AUTO UNHOOK SELF — VD-specific
+--  Dari probe log:
+--    Hooked state: CHAR.Attribute "IsHooked" = true
+--    Self-unhook trigger: LEFT-CLICK (mouse1) → anim 124706657239027
+--    Per attempt: ~4% success, 1.2s anim, -20% HookedProgress penalty kalau gagal
+--    Struggle: SPACE spam buat skill check / anti-camp charge
+--  Strategy: spam LEFT-CLICK setiap 1.3s (cycle dengan anim) + SPACE spam continuous
 -- ============================================================
+local lastUnhookClick = 0
+local UNHOOK_CLICK_INTERVAL = 1.3  -- ≥ anim length (1.2s)
+
+local function isSelfHooked()
+    local c = LP.Character
+    if c and c:GetAttribute("IsHooked") == true then return true end
+    -- Fallback ke detector lama
+    return _H.isPlayerHooked and _H.isPlayerHooked(LP) or false
+end
+
 task.spawn(function()
     while true do
         task.wait(CFG.unhookTick)
         if not CFG.autoUnhookEnabled then continue end
 
-        if _H.isPlayerHooked(LP) then
-            -- Spam space buat struggle/skill check
+        if isSelfHooked() then
+            -- Spam SPACE buat skill check / struggle (cepet, tiap tick)
             pcall(function()
                 VIM:SendKeyEvent(true,  Enum.KeyCode.Space, false, game)
-                task.wait(0.04)
+                task.wait(0.03)
                 VIM:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
             end)
-            -- Hold mouse juga untuk self-unhook attempt (kalau game pakai mouse)
-            if not arHolding then
-                rawPress()
-                arHolding = true
+            -- Spam LEFT-CLICK self-unhook attempt (cycle 1.3s — match anim)
+            local now = tick()
+            if now - lastUnhookClick >= UNHOOK_CLICK_INTERVAL then
+                lastUnhookClick = now
+                pcall(function()
+                    VIM:SendMouseButtonEvent(0, 0, 0, true,  game, 0)  -- LMB down
+                    task.wait(0.05)
+                    VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)  -- LMB up
+                end)
             end
         else
-            -- Bukan ke-hook, pastikan release
+            -- Bukan ke-hook, pastikan release mouse kalau nyangkut
             if arHolding and not CFG.autoRepairEnabled then
                 arRelease()
             end
         end
+    end
+end)
+
+-- ============================================================
+--  STEP 6.11b: AUTO PARRY — Survivor weapon parry
+--  Trigger:  CHAR.Parry = false (cooldown clean)
+--            + equip tool yang nama-nya match "Parry" (Parry Dagger)
+--            + killer player dist ≤ parryRange (default 6m)
+--            + tidak Knocked/Hooked/Carried
+--  Aksi:     Fire RMB (mouse2) click → game set CHAR.Parry=true 800ms
+-- ============================================================
+local lastParryFire = 0
+
+local function hasParryWeapon()
+    local c = LP.Character
+    if c then
+        for _, t in ipairs(c:GetChildren()) do
+            if t:IsA("Tool") and t.Name:lower():find("parry") then return true end
+        end
+    end
+    if LP.Backpack then
+        for _, t in ipairs(LP.Backpack:GetChildren()) do
+            if t:IsA("Tool") and t.Name:lower():find("parry") then return true end
+        end
+    end
+    return false
+end
+
+local function nearestKillerDist()
+    local c = LP.Character
+    local myRoot = c and c:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return math.huge end
+    local best = math.huge
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p == LP then continue end
+        local team = p.Team and p.Team.Name or ""
+        if not team:lower():find("killer") then continue end
+        local pRoot = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+        if not pRoot then continue end
+        local d = (myRoot.Position - pRoot.Position).Magnitude
+        if d < best then best = d end
+    end
+    return best
+end
+
+task.spawn(function()
+    while true do
+        task.wait(CFG.parryTick)
+        if not CFG.autoParryEnabled then continue end
+
+        local c = LP.Character
+        if not c then continue end
+        -- Skip kalau lagi knocked/hooked/carried (parry useless saat itu)
+        if c:GetAttribute("Knocked") == true then continue end
+        if c:GetAttribute("IsHooked") == true then continue end
+        if c:GetAttribute("IsCarried") == true then continue end
+        -- Skip kalau Parry attribute udah true (window aktif, jangan double fire)
+        if c:GetAttribute("Parry") == true then continue end
+        -- Cooldown check
+        local now = tick()
+        if now - lastParryFire < CFG.parryCooldown then continue end
+        -- Senjata equip check
+        if not hasParryWeapon() then continue end
+        -- Killer dalam range?
+        if nearestKillerDist() > CFG.parryRange then continue end
+
+        -- FIRE RMB click
+        lastParryFire = now
+        pcall(function()
+            VIM:SendMouseButtonEvent(0, 0, 1, true,  game, 0)  -- RMB down (button=1)
+            task.wait(0.04)
+            VIM:SendMouseButtonEvent(0, 0, 1, false, game, 0)  -- RMB up
+        end)
     end
 end)
 
@@ -1527,8 +1627,11 @@ local function isKillerPlayer(p)
     return tn == CFG.teamKiller or tn:lower():find("killer")
 end
 
--- Pallet cache (5s refresh)
-local PALLET_NAMES = {"Pallet","DroppedPallet","BrokenPallet"}
+-- Pallet cache (5s refresh) — VD structure:
+--   Model "Pallet"/"Palletwrong" children:
+--     HumanoidRootPart (anchored, vertical reference — never tilts → distance ref)
+--     Primary1/Primary2/PrimaryPartPallet MeshPart (un-anchored → tilt saat dropped)
+-- Strategy: filter leaf model (yang punya HumanoidRootPart), simpan ref part + tilt part
 local palletCache, palletLastScan = {}, 0
 local function getPallets()
     local now = tick()
@@ -1536,33 +1639,32 @@ local function getPallets()
     palletLastScan = now
     palletCache    = {}
     for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Model") then
-            local ln = obj.Name:lower()
-            if ln:find("pallet") then
-                local part = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                if part then table.insert(palletCache, {model=obj, part=part}) end
+        if obj:IsA("Model") and obj.Name:lower():find("pallet") then
+            local hrp = obj:FindFirstChild("HumanoidRootPart")
+            if hrp and hrp:IsA("BasePart") then  -- leaf only (skip parent container)
+                local tilt = obj:FindFirstChild("Primary1")
+                          or obj:FindFirstChild("Primary2")
+                          or obj:FindFirstChild("PrimaryPartPallet")
+                table.insert(palletCache, {model=obj, part=hrp, tilt=tilt})
             end
         end
     end
     return palletCache
 end
 
--- Detect dropped pallet (attribute, name, or just not-broken state)
+-- Detect dropped pallet — VD tidak pakai attribute apa pun.
+-- Standing pallet: Primary MeshPart UpVector.Y ≈ 1 (tegak)
+-- Dropped pallet : Primary MeshPart UpVector.Y < 0.5 (tertidur horizontal)
 local function isPalletDropped(palletData)
     local m = palletData.model
     if not m or not m.Parent then return false end
-    -- Attribute checks
-    for _, a in ipairs({"Dropped","IsDropped","Down","Active"}) do
-        local v = m:GetAttribute(a)
-        if v == true then return true end
+    -- Attribute fallback (future-proof kalau game update)
+    for _, a in ipairs({"Dropped","IsDropped","Down","Broken"}) do
+        if m:GetAttribute(a) == true then return true end
     end
-    -- Name-based: "DroppedPallet" or contains "drop"
-    local n = m.Name:lower()
-    if n:find("drop") or n:find("down") then return true end
-    -- Orientation heuristic: if part Y rotation tipped (laying flat) it's dropped
-    if palletData.part then
-        local up = palletData.part.CFrame.UpVector
-        if math.abs(up.Y) < 0.5 then return true end  -- tipped over
+    -- Tilt check pakai Primary MeshPart (HumanoidRootPart anchored → skip)
+    if palletData.tilt and palletData.tilt:IsA("BasePart") then
+        if palletData.tilt.CFrame.UpVector.Y < 0.5 then return true end
     end
     return false
 end
@@ -1757,10 +1859,52 @@ end
 
 local function fixStunState(hum)
     if not hum then return end
+    local char = hum.Parent
+    -- VD-specific: reset IsStunned attribute kalau ke-set
+    if char and (CFG.antiPalletStunEnabled or CFG.antiFlashlightEnabled or CFG.antiShootStunEnabled) then
+        if char:GetAttribute("IsStunned") == true then
+            pcall(function() char:SetAttribute("IsStunned", false) end)
+        end
+        -- Destroy BodyVelocity yang nyangkut di HRP
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            for _, d in ipairs(hrp:GetChildren()) do
+                if d:IsA("BodyVelocity") or d:IsA("BodyForce") or d:IsA("BodyAngularVelocity") then
+                    pcall(function() d:Destroy() end)
+                end
+            end
+        end
+    end
+    -- Legacy safety nets
     if hum.PlatformStand then pcall(function() hum.PlatformStand = false end) end
     if hum.Sit then pcall(function() hum.Sit = false end) end
     if hum.WalkSpeed > 0 and hum.WalkSpeed < 12 then
         pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
+    end
+end
+
+-- VD stun mechanism (dari probe log):
+--   Pallet/Flashlight/Shoot stun: char.Attribute "IsStunned" = true
+--                                  + BodyVelocity di HumanoidRootPart
+--                                  + StunAnimation id 75857500533792
+--   Vault stun (survivor vault on killer): char.Attribute "Immobile" = true
+--                                          + Animation "Vault" id 96839438835309
+-- "Immobile" juga di-set saat killer SELF-ACTION (attack, kick pallet, carry).
+-- Jadi Anti-Vault HANYA force Immobile=false saat Vault anim play.
+local STUN_ANIM_IDS = {
+    ["rbxassetid://75857500533792"] = true,  -- StunAnimation (pallet/flash/shoot)
+}
+local VAULT_ANIM_IDS = {
+    ["rbxassetid://96839438835309"] = true,  -- Vault
+}
+
+local function removeStunBodyMovers(char)
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    for _, d in ipairs(hrp:GetChildren()) do
+        if d:IsA("BodyVelocity") or d:IsA("BodyForce") or d:IsA("BodyAngularVelocity") then
+            pcall(function() d:Destroy() end)
+        end
     end
 end
 
@@ -1769,60 +1913,73 @@ local function attachAntiStun(char)
     if not char then return end
     local hum = char:FindFirstChild("Humanoid")
     if not hum then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
 
-    -- WalkSpeed dropped → restore instant
-    table.insert(stunConns, hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-        if not antiStunActive() or getRole() ~= "Killer" then return end
-        if hum.WalkSpeed > 0 and hum.WalkSpeed < 12 then
+    -- ── 1. IsStunned attribute → force false + remove BodyVelocity
+    -- (Pallet, Flashlight, Shoot stun — share signature)
+    table.insert(stunConns, char:GetAttributeChangedSignal("IsStunned"):Connect(function()
+        if getRole() ~= "Killer" then return end
+        if not (CFG.antiPalletStunEnabled or CFG.antiFlashlightEnabled or CFG.antiShootStunEnabled) then return end
+        if char:GetAttribute("IsStunned") == true then
+            pcall(function() char:SetAttribute("IsStunned", false) end)
+            removeStunBodyMovers(char)
             pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
         end
     end))
 
-    -- PlatformStand triggered → reset
-    table.insert(stunConns, hum:GetPropertyChangedSignal("PlatformStand"):Connect(function()
-        if not antiStunActive() or getRole() ~= "Killer" then return end
-        if hum.PlatformStand then
-            pcall(function() hum.PlatformStand = false end)
+    -- ── 2. Immobile attribute → force false HANYA kalau Vault anim aktif
+    -- (anti-false-positive untuk self-action attack/carry/kick)
+    local vaultActive = false
+    table.insert(stunConns, char:GetAttributeChangedSignal("Immobile"):Connect(function()
+        if getRole() ~= "Killer" then return end
+        if not CFG.antiVaultStunEnabled then return end
+        if char:GetAttribute("Immobile") == true and vaultActive then
+            pcall(function() char:SetAttribute("Immobile", false) end)
+            removeStunBodyMovers(char)
+            pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
         end
     end))
 
-    -- Sit triggered → reset
-    table.insert(stunConns, hum:GetPropertyChangedSignal("Sit"):Connect(function()
-        if not antiStunActive() or getRole() ~= "Killer" then return end
-        if hum.Sit then pcall(function() hum.Sit = false end) end
-    end))
-
-    -- State changed ke stun-like state → force GettingUp
-    table.insert(stunConns, hum.StateChanged:Connect(function(_, newState)
-        if not antiStunActive() or getRole() ~= "Killer" then return end
-        if newState == Enum.HumanoidStateType.PlatformStanding
-        or newState == Enum.HumanoidStateType.Physics
-        or newState == Enum.HumanoidStateType.FallingDown then
-            pcall(function() hum:ChangeState(Enum.HumanoidStateType.GettingUp) end)
-        end
-    end))
-
-    -- Stop stun animations as they play
+    -- ── 3. Cancel stun/vault animations by ID
     table.insert(stunConns, hum.AnimationPlayed:Connect(function(track)
-        if not antiStunActive() or getRole() ~= "Killer" then return end
-        if track.Animation then
-            local n = track.Animation.Name:lower()
-            if n:find("stun") or n:find("flash") or n:find("pallet")
-            or n:find("shoot") or n:find("hit") or n:find("vault")
-            or n:find("blind") or n:find("daze") then
+        if getRole() ~= "Killer" then return end
+        if not track.Animation then return end
+        local id = track.Animation.AnimationId
+        -- StunAnimation (pallet/flash/shoot)
+        if STUN_ANIM_IDS[id] and (CFG.antiPalletStunEnabled or CFG.antiFlashlightEnabled or CFG.antiShootStunEnabled) then
+            pcall(function() track:Stop(0) end)
+        end
+        -- Vault anim — track flag selama anim play, cancel kalau anti-vault on
+        if VAULT_ANIM_IDS[id] then
+            vaultActive = true
+            track.Stopped:Connect(function() vaultActive = false end)
+            if CFG.antiVaultStunEnabled then
                 pcall(function() track:Stop(0) end)
+                if char:GetAttribute("Immobile") == true then
+                    pcall(function() char:SetAttribute("Immobile", false) end)
+                    removeStunBodyMovers(char)
+                end
             end
         end
     end))
 
-    -- Reset attributes (untuk game yang pake Attribute toggle)
-    table.insert(stunConns, char.AttributeChanged:Connect(function(name)
-        if not antiStunActive() or getRole() ~= "Killer" then return end
-        local ln = name:lower()
-        if ln:find("stun") or ln:find("flash") or ln:find("blind") or ln:find("daze") then
-            if char:GetAttribute(name) == true then
-                pcall(function() char:SetAttribute(name, false) end)
+    -- ── 4. BodyVelocity injected into HRP (knock-back) → destroy instant
+    if hrp then
+        table.insert(stunConns, hrp.ChildAdded:Connect(function(c)
+            if getRole() ~= "Killer" then return end
+            if not (CFG.antiPalletStunEnabled or CFG.antiFlashlightEnabled or CFG.antiShootStunEnabled or CFG.antiVaultStunEnabled) then return end
+            if c:IsA("BodyVelocity") or c:IsA("BodyForce") or c:IsA("BodyAngularVelocity") then
+                pcall(function() c:Destroy() end)
+                pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
             end
+        end))
+    end
+
+    -- ── 5. WalkSpeed dropped backup (kalau attribute miss)
+    table.insert(stunConns, hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+        if not antiStunActive() or getRole() ~= "Killer" then return end
+        if hum.WalkSpeed > 0 and hum.WalkSpeed < 12 then
+            pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
         end
     end))
 end
@@ -3621,11 +3778,16 @@ do
         function() CFG.autoUnhookEnabled = not CFG.autoUnhookEnabled end)
     checkboxUpdaters.autoUnhook = u
 end
+do
+    local _, u = makeCheckboxFor(sTab, 358, "Auto Parry (weapon RMB)", "autoParryEnabled",
+        function() CFG.autoParryEnabled = not CFG.autoParryEnabled end)
+    checkboxUpdaters.autoParry = u
+end
 
-makeSectionHeader(sTab, 368, "ROLE")
+makeSectionHeader(sTab, 422, "ROLE")
 local roleLbl = Instance.new("TextLabel")
 roleLbl.Size                   = UDim2.new(1, 0, 0, 18)
-roleLbl.Position               = UDim2.new(0, 0, 0, 406)
+roleLbl.Position               = UDim2.new(0, 0, 0, 460)
 roleLbl.BackgroundTransparency = 1
 roleLbl.Text                   = "Current: " .. (CFG.roleOverride and ("Manual " .. CFG.manualRole) or ("Auto " .. roleCache))
 roleLbl.TextColor3             = T.textPri
@@ -3638,7 +3800,7 @@ roleLbl.Parent                 = sTab
 local function makeRoleBtn(text, posX, color, onClick)
     local b = Instance.new("TextButton")
     b.Size              = UDim2.new(0, 88, 0, 34)
-    b.Position          = UDim2.new(0, posX, 0, 438)
+    b.Position          = UDim2.new(0, posX, 0, 492)
     b.BackgroundColor3  = T.btnBase
     b.BorderSizePixel   = 0
     b.Text              = text
@@ -3974,6 +4136,7 @@ local syncMap = {
     autoRescue = "autoRescueEnabled",
     autoHeal   = "autoHealEnabled",
     autoUnhook = "autoUnhookEnabled",
+    autoParry  = "autoParryEnabled",
     aimbot     = "aimbotEnabled",
     speed      = "speedEnabled",
     godMode    = "godModeEnabled",
