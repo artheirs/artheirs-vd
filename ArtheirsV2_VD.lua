@@ -1,1 +1,4110 @@
-local q=game:GetService("Players")local c=game:GetService("RunService")local r=game:GetService("UserInputService")local j=q.LocalPlayer local u="https://raw.githubusercontent.com/artheirs/artheirs-vd/refs/heads/main/whitelist.lua"local M={8961991252}local function G()local q=u..("?t="..tostring(os.time()))local c,r=pcall(function()return game:HttpGet(q,true)end)if not c or type(r)~="string"or#r==0 then return nil,"fetch failed"end local j,M=loadstring(r)if not j then return nil,"compile: "..tostring(M)end local G,d=pcall(j)if not G or type(d)~="table"then return nil,"exec: "..tostring(d)end return d,nil end local function d()local q=j.UserId local c,r=G()if c then for c,r in ipairs(c)do if r==q then return true,"live"end end return false,"live"end for c,j in ipairs(M)do if j==q then return true,"fallback ("..(tostring(r)..")")end end return false,"fetch failed: "..tostring(r)end local z,Y=d()if not z then pcall(function()(game:GetService("StarterGui")):SetCore("SendNotification",{Title="Artheirs Script";Text="Access Denied \226\128\148 UserId kamu tidak di whitelist";Duration=10})end)warn("[ARTHEIRS] Access denied for UserId "..(tostring(j.UserId)..(" \226\128\148 reason: "..tostring(Y))))return end local P={KEY_ESP=Enum.KeyCode.One,KEY_TP=Enum.KeyCode.Two;KEY_SPEED=Enum.KeyCode.Three;KEY_FLY=Enum.KeyCode.Four,KEY_NOCLIP=Enum.KeyCode.Five,KEY_FULLBRIGHT=Enum.KeyCode.Six,KEY_AUTOREPAIR=Enum.KeyCode.Seven,KEY_AUTOESCAPE=Enum.KeyCode.Eight,KEY_AIMBOT=Enum.KeyCode.Nine;espEnabled=true,espKillerEnabled=true;espSurvivorEnabled=true;espGeneratorEnabled=true;espPalletEnabled=false,tpOpen=false,roleOverride=false,manualRole="Survivor";speedEnabled=false,speedValue=30,speedMin=16;speedMax=200;speedStep=5;flyEnabled=false;flySpeedMul=1.5;noclipEnabled=false,fullbrightEnabled=false;autoRepairEnabled=false,autoRepairRange=18,autoRepairTick=.1,autoEscapeEnabled=false;escapeDistance=40,escapeCooldown=3,escapeTick=.2,aimbotEnabled=false;aimbotFOV=120,aimbotFOVMin=30;aimbotFOVMax=400,aimbotFOVStep=10,crosshairSize=4;genProgressShow=true;autoRescueEnabled=false;rescueRange=12,rescueCooldown=4;rescueTick=.2;autoHealEnabled=false;healRange=10,healSelfHpThreshold=90,healTick=.3,autoUnhookEnabled=false;unhookTick=.15;autoAttackEnabled=false;autoAttackRange=7,autoAttackFOV=.45,autoAttackTick=.08,autoPickupEnabled=false;pickupRange=8;pickupTick=.25;autoHookEnabled=false,hookRange=6,hookTick=.4,genActivityEnabled=true,genActivityRange=8,antiPalletStunEnabled=false;antiFlashlightEnabled=false;antiVaultStunEnabled=false,antiShootStunEnabled=false,antiStunTick=.05;autoBreakPalletEnabled=false,breakPalletRange=8,breakPalletTick=.3;godModeEnabled=false,colorKiller=Color3.fromRGB(255,80,80);colorSurvivor=Color3.fromRGB(80,255,80);colorGenerator=Color3.fromRGB(255,220,50),teamKiller="Killers",teamSurvivor="Survivors",genNames={"Generator"}}local O="Survivor"local function a()if j.Team then local c=j.Team.Name local r=c:lower()if c==P.teamKiller then return"Killer"end if c==P.teamSurvivor then return"Survivor"end if r=="killer"or r=="killers"then return"Killer"end if r=="survivor"or r=="survivors"then return"Survivor"end local u=0 for q,c in ipairs(q:GetPlayers())do if c.Team==j.Team then u+=1 end end if u==1 then return"Killer"end return"Survivor"end return"Lobby"end local function o()if P.roleOverride then return P.manualRole end return O end;(j:GetPropertyChangedSignal("Team")):Connect(function()O=a()end)j.CharacterAdded:Connect(function(q)task.delay(.5,function()O=a()local c=q:FindFirstChild("Role")if c and c:IsA("StringValue")then(c:GetPropertyChangedSignal("Value")):Connect(function()O=a()end)end end)end)O=a()local function v(q)local c=j.Character if not c then return 0 end local r=c:FindFirstChild("HumanoidRootPart")if not r then return 0 end return math.floor(((r.Position-q)).Magnitude)end local function b(q)local c=q:FindFirstChild("_VD_ESP")if c then return c end c=Instance.new("BillboardGui")c.Name="_VD_ESP"c.AlwaysOnTop=true c.Size=UDim2.new(0,140,0,40)c.StudsOffset=Vector3.new(0,3.5,0)c.ResetOnSpawn=false c.LightInfluence=0 c.Enabled=false local r=Instance.new("TextLabel")r.Name="Label"r.Size=UDim2.new(1,0,1,0)r.BackgroundTransparency=1 r.TextStrokeTransparency=0 r.TextStrokeColor3=Color3.new(0,0,0)r.Font=Enum.Font.GothamBold r.TextSize=13 r.TextXAlignment=Enum.TextXAlignment.Center r.Parent=c c.Parent=q return c end local function X(q,c,r)if not q or not q.Parent then return end local j=b(q)local u=j:FindFirstChild("Label")if not u then return end u.TextColor3=c u.Text=r j.Enabled=true end local function x(q)if not q then return end local c=q:FindFirstChild("_VD_ESP")if c then c.Enabled=false end end local function U(q)if not q then return nil end local c=q:FindFirstChild("_VD_HL")if c then return c end c=Instance.new("Highlight")c.Name="_VD_HL"c.Adornee=q c.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop c.FillTransparency=.7 c.OutlineTransparency=0 c.Enabled=false c.Parent=q return c end local function T(q,c,r)local j=U(q)if not j then return end j.FillColor=c j.OutlineColor=r j.Enabled=true end local function e(q)if not q then return end local c=q:FindFirstChild("_VD_HL")if c then c.Enabled=false end end local h={}local V=0 local function t()local q=tick()if q-V<5 then return h end V=q h={}for q,c in ipairs(workspace:GetDescendants())do if not c:IsA("Model")then continue end local r=false for q,j in ipairs(P.genNames)do if c.Name==j then r=true break end end if not r then continue end local j=c.PrimaryPart or c:FindFirstChildWhichIsA("BasePart")if j and not table.find(h,j)then table.insert(h,j)end end return h end local function B(q)local c=j.Character local r=q.Character if not c or not r then return end local u=c:FindFirstChild("HumanoidRootPart")local M=r:FindFirstChild("HumanoidRootPart")if not u or not M then return end u.CFrame=M.CFrame end local F={}local l={}local D={}local J={}local w={}c.RenderStepped:Connect(function()local c=o()for q,r in ipairs(q:GetPlayers())do if r==j then continue end local u=r.Character if not u then continue end local M=u:FindFirstChild("HumanoidRootPart")local G=u:FindFirstChild("Humanoid")if not M or not G or G.Health<=0 then if M then x(M)end e(u)continue end local d="Survivor"if r.Team then local q=r.Team.Name if q==P.teamKiller or(q:lower()):find("killer")then d="Killer"end end local z=(d=="Killer"and P.espKillerEnabled)or(d=="Survivor"and P.espSurvivorEnabled)local Y=P.espEnabled and(z and(((c=="Survivor"and d=="Killer")or(c=="Survivor"and d=="Survivor")or(c=="Killer"and d=="Survivor"))))if Y then local q,c,j local G=""if d=="Killer"then q=P.colorKiller c=Color3.fromRGB(255,80,80)j=Color3.fromRGB(255,0,0)elseif w.isPlayerHooked and w.isPlayerHooked(r)then q=Color3.fromRGB(255,150,50)c=Color3.fromRGB(255,140,40)j=Color3.fromRGB(255,100,0)G=" \194\183 HOOKED"elseif w.isPlayerDowned and w.isPlayerDowned(r)then q=Color3.fromRGB(255,220,80)c=Color3.fromRGB(255,220,80)j=Color3.fromRGB(220,180,0)G=" \194\183 DOWN"else q=P.colorSurvivor c=Color3.fromRGB(80,255,100)j=Color3.fromRGB(0,220,0)end local z=v(M.Position)X(M,q,r.DisplayName..("\n["..(z..("m]"..G))))T(u,c,j)else x(M)e(u)end end if c=="Survivor"and(P.espEnabled and P.espGeneratorEnabled)then local q={}local c={}for r,j in ipairs(t())do local u=v(j.Position)local M="Generator\n["..(u.."m]")if P.genProgressShow then local q=w.getGenProgress and w.getGenProgress(j)if q then M=M..(" \194\183 "..(math.floor(q+.5).."%"))end end X(j,P.colorGenerator,M)c[j]=true local G=j:FindFirstAncestorWhichIsA("Model")if G then T(G,Color3.fromRGB(255,220,50),Color3.fromRGB(255,200,0))q[G]=true end end for c in pairs(F)do if not q[c]and(c and c.Parent)then e(c)end end for q in pairs(l)do if not c[q]and(q and q.Parent)then x(q)end end F=q l=c elseif c=="Killer"and(P.espEnabled and(P.espGeneratorEnabled and P.genActivityEnabled))then local c={}local r={}for u,M in ipairs(t())do local G=false for q,c in ipairs(q:GetPlayers())do if c~=j and(c.Team and c.Team.Name==P.teamSurvivor)then local q=c.Character local r=q and q:FindFirstChild("HumanoidRootPart")if r and((r.Position-M.Position)).Magnitude<=P.genActivityRange then G=true break end end end if G then local q=v(M.Position)local j="ACTIVE GEN\n["..(q.."m]")if P.genProgressShow then local q=w.getGenProgress and w.getGenProgress(M)if q then j=j..(" \194\183 "..(math.floor(q+.5).."%"))end end X(M,Color3.fromRGB(255,80,80),j)r[M]=true local u=M:FindFirstAncestorWhichIsA("Model")if u then T(u,Color3.fromRGB(255,80,80),Color3.fromRGB(220,0,0))c[u]=true end end end for q in pairs(F)do if not c[q]and(q and q.Parent)then e(q)end end for q in pairs(l)do if not r[q]and(q and q.Parent)then x(q)end end F=c l=r else for q in pairs(F)do if q and q.Parent then e(q)end end for q in pairs(l)do if q and q.Parent then x(q)end end if next(F)~=nil then F={}end if next(l)~=nil then l={}end end if P.espEnabled and(P.espPalletEnabled and w.getPalletParts)then local q,c={},{}for r,j in ipairs(w.getPalletParts())do if j and j.Parent then local r=v(j.Position)X(j,Color3.fromRGB(120,220,255),"Pallet\n["..(r.."m]"))c[j]=true local u=j:FindFirstAncestorWhichIsA("Model")if u then T(u,Color3.fromRGB(120,200,255),Color3.fromRGB(60,160,230))q[u]=true end end end for c in pairs(D or{})do if not q[c]and(c and c.Parent)then e(c)end end for q in pairs(J or{})do if not c[q]and(q and q.Parent)then x(q)end end D=q J=c else for q in pairs(D or{})do if q and q.Parent then e(q)end end for q in pairs(J or{})do if q and q.Parent then x(q)end end D={}J={}end end)local g=nil local function A()local q=j.Character if not q then return end local c=q:FindFirstChild("Humanoid")if not c then return end if P.speedEnabled then if c.WalkSpeed~=P.speedValue then c.WalkSpeed=P.speedValue end end end local function f()if g then g:Disconnect()end local q=j.Character if not q then return end local c=q:FindFirstChild("Humanoid")if not c then return end g=(c:GetPropertyChangedSignal("WalkSpeed")):Connect(A)A()end j.CharacterAdded:Connect(function()task.wait(.2)f()end)if j.Character then f()end local H=nil local function E()if H then H:Disconnect()H=nil end local q=j.Character if not q then return end local c=q:FindFirstChild("Humanoid")if not c then return end H=c.HealthChanged:Connect(function(q)if not P.godModeEnabled then return end if q<c.MaxHealth then pcall(function()c.Health=c.MaxHealth end)end end)if P.godModeEnabled then pcall(function()c.MaxHealth=1000000000.0 c.Health=c.MaxHealth end)end end j.CharacterAdded:Connect(function()task.wait(.2)E()end)if j.Character then E()end task.spawn(function()while true do task.wait(.05)if not P.godModeEnabled then continue end local q=j.Character if not q then continue end local c=q:FindFirstChild("Humanoid")if c and(c.Health>0 and c.Health<c.MaxHealth)then pcall(function()c.Health=c.MaxHealth end)end end end)local m,i local function L()local q=j.Character if not q then return end local c=q:FindFirstChild("HumanoidRootPart")if not c then return end if not m or not m.Parent then m=Instance.new("BodyVelocity")m.Name="_VD_FlyBV"m.MaxForce=Vector3.new(math.huge,math.huge,math.huge)m.Velocity=Vector3.zero m.Parent=c end if not i or not i.Parent then i=Instance.new("BodyGyro")i.Name="_VD_FlyBG"i.MaxTorque=Vector3.new(math.huge,math.huge,math.huge)i.P=90000.0 i.D=1000 i.CFrame=c.CFrame i.Parent=c end end local function p()if m then m:Destroy()m=nil end if i then i:Destroy()i=nil end end local I={}local Q=nil local function y()I={}local q=j.Character if not q then return end for q,c in ipairs(q:GetDescendants())do if c:IsA("BasePart")then table.insert(I,c)end end if Q then Q:Disconnect()end Q=q.DescendantAdded:Connect(function(q)if q:IsA("BasePart")then table.insert(I,q)end end)end j.CharacterAdded:Connect(function()task.wait(.2)y()end)if j.Character then y()end c.Stepped:Connect(function()local q=j.Character if not q then return end if P.noclipEnabled then for q=#I,1,-1 do local c=I[q]if c and c.Parent then if c.CanCollide then c.CanCollide=false end else table.remove(I,q)end end end if P.flyEnabled and(m and i)then local q=workspace.CurrentCamera local c=Vector3.zero if r:IsKeyDown(Enum.KeyCode.W)then c+=q.CFrame.LookVector end if r:IsKeyDown(Enum.KeyCode.S)then c-=q.CFrame.LookVector end if r:IsKeyDown(Enum.KeyCode.A)then c-=q.CFrame.RightVector end if r:IsKeyDown(Enum.KeyCode.D)then c+=q.CFrame.RightVector end if r:IsKeyDown(Enum.KeyCode.Space)then c+=Vector3.new(0,1,0)end if r:IsKeyDown(Enum.KeyCode.LeftControl)then c-=Vector3.new(0,1,0)end local j=P.speedValue*P.flySpeedMul m.Velocity=c.Magnitude>0 and c.Unit*j or Vector3.zero i.CFrame=q.CFrame end end)j.CharacterAdded:Connect(function()task.wait(.3)if P.flyEnabled then L()end end)local W=game:GetService("Lighting")local R=nil local k={}local K={}local function Z()R={Brightness=W.Brightness,ClockTime=W.ClockTime;FogEnd=W.FogEnd,FogStart=W.FogStart;GlobalShadows=W.GlobalShadows;Ambient=W.Ambient,OutdoorAmbient=W.OutdoorAmbient}W.Brightness=2 W.ClockTime=14 W.FogEnd=1000000.0 W.FogStart=1000000.0 W.GlobalShadows=false W.Ambient=Color3.fromRGB(178,178,178)W.OutdoorAmbient=Color3.fromRGB(178,178,178)k={}K={}for q,c in ipairs(W:GetChildren())do if c:IsA("PostEffect")then if c.Enabled then c.Enabled=false table.insert(k,c)end elseif c:IsA("Atmosphere")then table.insert(K,{obj=c,Density=c.Density,Haze=c.Haze,Glare=c.Glare})c.Density=0 c.Haze=0 c.Glare=0 end end end local function N()if not R then return end for q,c in pairs(R)do W[q]=c end for q,c in ipairs(k)do if c and c.Parent then c.Enabled=true end end for q,c in ipairs(K)do if c.obj and c.obj.Parent then c.obj.Density=c.Density c.obj.Haze=c.Haze c.obj.Glare=c.Glare end end R=nil k={}K={}end local S=game:GetService("VirtualInputManager")local s=false local function C()local q=j.Character if not q then return nil,math.huge end local c=q:FindFirstChild("HumanoidRootPart")if not c then return nil,math.huge end local r,u=nil,math.huge for q,j in ipairs(t())do if j and j.Parent then local q=((j.Position-c.Position)).Magnitude if q<u then r=j u=q end end end return r,u end local n=rawget(getfenv(),"mouse1press")or mouse1press local qN=rawget(getfenv(),"mouse1release")or mouse1release local function cN()if n then pcall(n)else pcall(function()S:SendMouseButtonEvent(0,0,0,true,game,1)end)end end local function rN()if qN then pcall(qN)else pcall(function()S:SendMouseButtonEvent(0,0,0,false,game,1)end)end end local function jN()if s then return end rN()task.wait(.06)s=true cN()end local function uN()if not s then return end s=false rN()end local MN=nil local function GN(q)if not q or not q.Parent then return math.huge end local c=j.Character if not c then return math.huge end local r=c:FindFirstChild("HumanoidRootPart")if not r then return math.huge end return((q.Position-r.Position)).Magnitude end local function dN()return r:IsKeyDown(Enum.KeyCode.W)or r:IsKeyDown(Enum.KeyCode.A)or r:IsKeyDown(Enum.KeyCode.S)or r:IsKeyDown(Enum.KeyCode.D)end task.spawn(function()while true do task.wait(P.autoRepairTick)if not P.autoRepairEnabled then if s then uN()end MN=nil continue end if dN()then if s then uN()end MN=nil continue end if MN and s then local q=GN(MN)if q<=P.autoRepairRange then continue end uN()MN=nil end local q,c=C()if not q or c>P.autoRepairRange then if s then uN()end MN=nil else if not s then jN()end MN=q end end end)j.CharacterAdded:Connect(function()s=false MN=nil end)local zN=0 local function YN(q)if not q.Team then return false end local c=q.Team.Name return c==P.teamKiller or(c:lower()):find("killer")end local function PN(c)local r,u=nil,math.huge for q,M in ipairs(q:GetPlayers())do if M==j then continue end if not YN(M)then continue end local G=M.Character if not G then continue end local d=G:FindFirstChild("HumanoidRootPart")if not d then continue end local z=((d.Position-c)).Magnitude if z<u then u=z r=M end end return r,u end local function ON(q,c)local r,j=nil,-1 for u,M in ipairs(t())do if M~=c then local c=((M.Position-q)).Magnitude if c>j then j=c r=M end end end if not r then for c,u in ipairs(t())do local M=((u.Position-q)).Magnitude if M>j then j=M r=u end end end return r,j end task.spawn(function()while true do task.wait(P.escapeTick)if not P.autoEscapeEnabled then continue end if o()~="Survivor"then continue end local q=tick()if q-zN<P.escapeCooldown then continue end local c=j.Character if not c then continue end local r=c:FindFirstChild("HumanoidRootPart")if not r then continue end local u,M=C()if M>P.autoRepairRange then continue end local G,d=PN(r.Position)if not G or d>P.escapeDistance then continue end local z=G.Character.HumanoidRootPart.Position local Y,O=ON(z,u)if Y and O>P.escapeDistance then uN()r.CFrame=CFrame.new(Y.Position+Vector3.new(0,5,0))zN=q end end end)do local c={"Progress","Repair";"RepairProgress";"Percent";"Percentage","Charge","Completion","Value"}local function r(q)if type(q)~="number"then return nil end if q<0 then return 0 end if q<=1 then return q*100 end if q<=100 then return q end return math.min(100,q)end function w.getGenProgress(q)if not q then return nil end local j=q:FindFirstAncestorWhichIsA("Model")if not j then return nil end for q,c in ipairs(c)do local u=j:GetAttribute(c)local M=r(u)if M then return M end end for q,c in ipairs(c)do local u=j:FindFirstChild(c)if u and((u:IsA("NumberValue")or u:IsA("IntValue")))then local q=r(u.Value)if q then return q end end end local u=0 for q,c in ipairs(j:GetDescendants())do u=u+1 if u>50 then break end if c:IsA("NumberValue")or c:IsA("IntValue")then local q=c.Name:lower()if q:find("progress")or q:find("repair")or q:find("percent")then local q=r(c.Value)if q then return q end end end end return nil end local u={"Hook";"MeatHook";"ShackleHook"}local M={}local G=0 local function d()local q=tick()if q-G<5 and#M>0 then return M end G=q M={}for q,c in ipairs(workspace:GetDescendants())do if c:IsA("Model")or c:IsA("BasePart")then for q,r in ipairs(u)do if c.Name==r or(c.Name:lower()):find("hook")then local q=c:IsA("BasePart")and c or(c.PrimaryPart or c:FindFirstChildWhichIsA("BasePart"))if q then table.insert(M,q)end break end end end end return M end local z,Y={},0 function w.getPalletParts()local q=tick()if q-Y<5 and#z>0 then return z end Y=q z={}for q,c in ipairs(workspace:GetDescendants())do if c:IsA("Model")and(c.Name:lower()):find("pallet")then local q=c.PrimaryPart or c:FindFirstChildWhichIsA("BasePart")if q then table.insert(z,q)end end end return z end function w.isPlayerHooked(q)if not q then return false end local c=q.Character if not c then return false end for q,r in ipairs({"Hooked","IsHooked","OnHook","Hang";"Hanging"})do if c:GetAttribute(r)==true then return true end end local r=c:FindFirstChild("Humanoid")if r then for q,c in ipairs({"Hooked","IsHooked","OnHook"})do if r:GetAttribute(c)==true then return true end end local q,j=pcall(function()return r:GetState()end)if q and j==Enum.HumanoidStateType.PlatformStanding then local q=c:FindFirstChild("HumanoidRootPart")if q then for c,r in ipairs(d())do if r and(r.Parent and((r.Position-q.Position)).Magnitude<4)then return true end end end end end for q,r in ipairs({"Hooked";"IsHooked","OnHook"})do local j=c:FindFirstChild(r)if j and(j:IsA("BoolValue")and j.Value)then return true end end return false end function w.isPlayerDowned(q)if not q then return false end local c=q.Character if not c then return false end local r=c:FindFirstChild("Humanoid")if not r or r.Health<=0 then return false end for q,j in ipairs({"Downed";"KnockedDown","Crawling","IsDowned";"Dying";"Down";"Knocked"})do if c:GetAttribute(j)==true then return true end if r:GetAttribute(j)==true then return true end end if r.PlatformStand==true then if not w.isPlayerHooked(q)then return true end end if r.Sit==true then return true end local j,u=pcall(function()return r:GetState()end)if j then if u==Enum.HumanoidStateType.FallingDown or u==Enum.HumanoidStateType.Ragdoll then return true end if u==Enum.HumanoidStateType.PlatformStanding then if not w.isPlayerHooked(q)then return true end end end if r.WalkSpeed>0 and r.WalkSpeed<5 then return true end local M,G=pcall(function()return r:GetPlayingAnimationTracks()end)if M and G then for q,c in ipairs(G)do local r=c.Animation if r then local q=r.Name:lower()if q:find("crawl")or q:find("down")or q:find("dying")or q:find("knock")or q:find("inject")or q:find("injure")then return true end end end end for q,r in ipairs({"Downed","IsDowned";"Crawling";"Knocked"})do local j=c:FindFirstChild(r)if j and(j:IsA("BoolValue")and j.Value)then return true end end return false end local function O(q)if not q then return false end local c=q.Character if not c then return false end local r=c:FindFirstChild("Humanoid")if not r or r.Health<=0 then return false end return r.Health<r.MaxHealth*((P.healSelfHpThreshold/100))end local function a(q)local c=q and q.Character return c and c:FindFirstChild("HumanoidRootPart")end local v=0 local b=15 local X={}task.spawn(function()while true do task.wait(P.rescueTick)if not P.autoRescueEnabled then continue end if o()~="Survivor"then continue end local c=tick()if c-v<P.rescueCooldown then continue end local r=a(j)if not r then continue end local u,M,G=nil,nil,math.huge for q,d in ipairs(q:GetPlayers())do if d==j then continue end if YN(d)then continue end if not w.isPlayerHooked(d)then continue end local z=X[d.UserId]if z and(c-z)<b then continue end local Y=a(d)if Y then local q=((Y.Position-r.Position)).Magnitude if q<G then u,M,G=d,Y,q end end end if not u then continue end if s then uN()end r.CFrame=M.CFrame*CFrame.new(0,0,3)task.wait(.2)rN()task.wait(.05)cN()task.wait(1.2)rN()X[u.UserId]=tick()v=c end end)local x=0 task.spawn(function()while true do task.wait(P.healTick)if not P.autoHealEnabled then continue end if o()~="Survivor"then continue end local c=tick()if c-x<.5 then continue end local r=a(j)if not r then continue end local u,M=nil,nil if O(j)and not w.isPlayerHooked(j)then u,M=j,r end if not u then local c=P.healRange*4 for q,G in ipairs(q:GetPlayers())do if G==j then continue end if YN(G)then continue end if w.isPlayerHooked(G)then continue end local d=w.isPlayerDowned(G)or O(G)if not d then continue end local z=a(G)if z then local q=((z.Position-r.Position)).Magnitude if q<c then c=q u,M=G,z end end end end if not u then continue end if u~=j then local q=((M.Position-r.Position)).Magnitude if q>P.healRange then if s then uN()end r.CFrame=M.CFrame*CFrame.new(0,0,2.5)task.wait(.15)end end rN()task.wait(.05)cN()task.wait(1.5)rN()x=c end end)task.spawn(function()while true do task.wait(P.unhookTick)if not P.autoUnhookEnabled then continue end if w.isPlayerHooked(j)then pcall(function()S:SendKeyEvent(true,Enum.KeyCode.Space,false,game)task.wait(.04)S:SendKeyEvent(false,Enum.KeyCode.Space,false,game)end)if not s then cN()s=true end else if s and not P.autoRepairEnabled then uN()end end end end)end do local function c(q)local c=q and q.Character return c and c:FindFirstChild("HumanoidRootPart")end local r=rawget(getfenv(),"keypress")or keypress local u=rawget(getfenv(),"keyrelease")or keyrelease local function M()if r then pcall(r,32)end pcall(function()S:SendKeyEvent(true,Enum.KeyCode.Space,false,game)end)end local function G()if u then pcall(u,32)end pcall(function()S:SendKeyEvent(false,Enum.KeyCode.Space,false,game)end)end local function d(q)G()task.wait(.04)M()task.wait(q or 1.0)G()end local function z(q,c,r)if not q then return false end local j=c-q.Position if j.Magnitude<.001 then return true end local u=q.CFrame.LookVector return u:Dot(j.Unit)>=((r or.45))end local function Y(q)if not q.Team then return false end local c=q.Team.Name return c==P.teamKiller or(c:lower()):find("killer")end local O={"Pallet","DroppedPallet";"BrokenPallet"}local a,v={},0 local function b()local q=tick()if q-v<5 and#a>0 then return a end v=q a={}for q,c in ipairs(workspace:GetDescendants())do if c:IsA("Model")then local q=c.Name:lower()if q:find("pallet")then local q=c.PrimaryPart or c:FindFirstChildWhichIsA("BasePart")if q then table.insert(a,{model=c,part=q})end end end end return a end local function X(q)local c=q.model if not c or not c.Parent then return false end for q,r in ipairs({"Dropped";"IsDropped";"Down";"Active"})do local j=c:GetAttribute(r)if j==true then return true end end local r=c.Name:lower()if r:find("drop")or r:find("down")then return true end if q.part then local c=q.part.CFrame.UpVector if math.abs(c.Y)<.5 then return true end end return false end local function x()local q=j.Character if not q then return false end for c,r in ipairs({"Carrying";"IsCarrying";"HoldingSurvivor"})do if q:GetAttribute(r)==true then return true end end local c=q:FindFirstChild("Humanoid")if c then for q,r in ipairs({"Carrying","IsCarrying"})do if c:GetAttribute(r)==true then return true end end end return false end local U=0 task.spawn(function()while true do task.wait(P.autoAttackTick)if not P.autoAttackEnabled then continue end if o()~="Killer"then continue end local r=tick()if r-U<.5 then continue end local u=c(j)if not u then continue end local M,G=nil,math.huge for q,r in ipairs(q:GetPlayers())do if r==j then continue end if Y(r)then continue end local d=c(r)if not d then continue end local O=r.Character local a=O and O:FindFirstChild("Humanoid")if not a or a.Health<=0 then continue end if w.isPlayerDowned and w.isPlayerDowned(r)then continue end if w.isPlayerHooked and w.isPlayerHooked(r)then continue end local o=((d.Position-u.Position)).Magnitude if o<=P.autoAttackRange and z(u,d.Position,P.autoAttackFOV)then if o<G then M,G=r,o end end end if M then task.wait(math.random(30,90)/1000)rN()task.wait(.04)cN()task.wait(.18)rN()U=r end end end)local T=0 task.spawn(function()while true do task.wait(P.pickupTick)if not P.autoPickupEnabled then continue end if o()~="Killer"then continue end if x()then continue end local r=tick()if r-T<1.5 then continue end local u=c(j)if not u then continue end local M,G,z=nil,nil,math.huge for q,r in ipairs(q:GetPlayers())do if r==j or Y(r)then continue end if not w.isPlayerDowned(r)then continue end local d=c(r)if d then local q=((d.Position-u.Position)).Magnitude if q<z and q<=P.pickupRange*3 then M,G,z=r,d,q end end end if M then if z>P.pickupRange then u.CFrame=G.CFrame*CFrame.new(0,0,2)task.wait(.2)end d(1.2)T=r end end end)local e=0 task.spawn(function()while true do task.wait(P.hookTick)if not P.autoHookEnabled then continue end if o()~="Killer"then continue end if not x()then continue end local r=tick()if r-e<2 then continue end local u=c(j)if not u then continue end local M={}for q,r in ipairs(q:GetPlayers())do if r~=j and(not Y(r)and(w.isPlayerHooked and w.isPlayerHooked(r)))then local q=c(r)if q then table.insert(M,q.Position)end end end local function G(q)for c,r in ipairs(M)do if((r-q)).Magnitude<4 then return true end end return false end local z,O=nil,math.huge for q,c in ipairs(workspace:GetDescendants())do if c:IsA("Model")or c:IsA("BasePart")then local q=c.Name:lower()if q:find("hook")and not q:find("crook")then local q=c:IsA("BasePart")and c or(c.PrimaryPart or c:FindFirstChildWhichIsA("BasePart"))if q and not G(q.Position)then local c=((q.Position-u.Position)).Magnitude if c<O then z,O=q,c end end end end end if z then u.CFrame=CFrame.new(z.Position+Vector3.new(0,2,0),z.Position)task.wait(.25)d(1.4)e=r end end end)local function h()return P.antiPalletStunEnabled or P.antiVaultStunEnabled or P.antiShootStunEnabled end local V={}local function t()for q,c in ipairs(V)do pcall(function()c:Disconnect()end)end V={}end local function B()return P.speedEnabled and P.speedValue or 16 end local function F(q)if not q then return end if q.PlatformStand then pcall(function()q.PlatformStand=false end)end if q.Sit then pcall(function()q.Sit=false end)end if q.WalkSpeed>0 and q.WalkSpeed<12 then pcall(function()q.WalkSpeed=B()end)end end local function l(q)t()if not q then return end local c=q:FindFirstChild("Humanoid")if not c then return end table.insert(V,(c:GetPropertyChangedSignal("WalkSpeed")):Connect(function()if not h()or o()~="Killer"then return end if c.WalkSpeed>0 and c.WalkSpeed<12 then pcall(function()c.WalkSpeed=B()end)end end))table.insert(V,(c:GetPropertyChangedSignal("PlatformStand")):Connect(function()if not h()or o()~="Killer"then return end if c.PlatformStand then pcall(function()c.PlatformStand=false end)end end))table.insert(V,(c:GetPropertyChangedSignal("Sit")):Connect(function()if not h()or o()~="Killer"then return end if c.Sit then pcall(function()c.Sit=false end)end end))table.insert(V,c.StateChanged:Connect(function(q,r)if not h()or o()~="Killer"then return end if r==Enum.HumanoidStateType.PlatformStanding or r==Enum.HumanoidStateType.Physics or r==Enum.HumanoidStateType.FallingDown then pcall(function()c:ChangeState(Enum.HumanoidStateType.GettingUp)end)end end))table.insert(V,c.AnimationPlayed:Connect(function(q)if not h()or o()~="Killer"then return end if q.Animation then local c=q.Animation.Name:lower()if c:find("stun")or c:find("flash")or c:find("pallet")or c:find("shoot")or c:find("hit")or c:find("vault")or c:find("blind")or c:find("daze")then pcall(function()q:Stop(0)end)end end end))table.insert(V,q.AttributeChanged:Connect(function(c)if not h()or o()~="Killer"then return end local r=c:lower()if r:find("stun")or r:find("flash")or r:find("blind")or r:find("daze")then if q:GetAttribute(c)==true then pcall(function()q:SetAttribute(c,false)end)end end end))end j.CharacterAdded:Connect(function(q)task.wait(.2)l(q)end)if j.Character then l(j.Character)end task.spawn(function()while true do task.wait(P.antiStunTick)if not h()then continue end if o()~="Killer"then continue end local q=j.Character if not q then continue end local c=q:FindFirstChild("Humanoid")if c then F(c)end end end)local D=game:GetService("Lighting")local function J(q)if not P.antiFlashlightEnabled then return end if o()~="Killer"then return end if q:IsA("ColorCorrectionEffect")or q:IsA("BlurEffect")or q:IsA("BloomEffect")then pcall(function()q.Enabled=false end)pcall(function()q:Destroy()end)end end local function g(q)if not q then return end q.ChildAdded:Connect(function(q)J(q)end)for q,c in ipairs(q:GetChildren())do J(c)end end g(D)if workspace.CurrentCamera then g(workspace.CurrentCamera)end;(workspace:GetPropertyChangedSignal("CurrentCamera")):Connect(function()g(workspace.CurrentCamera)end)j.CharacterAdded:Connect(function(q)task.wait(.2)g(q)end)if j.Character then g(j.Character)end task.spawn(function()while true do task.wait(.1)if not P.antiFlashlightEnabled then continue end if o()~="Killer"then continue end for q,c in ipairs({D,workspace.CurrentCamera;j.Character})do if c then for q,c in ipairs(c:GetChildren())do J(c)end end end end end)local A=0 task.spawn(function()while true do task.wait(P.breakPalletTick)if not P.autoBreakPalletEnabled then continue end if o()~="Killer"then continue end local q=tick()if q-A<2.5 then continue end local r=c(j)if not r then continue end for c,j in ipairs(b())do local u=j.part if u and u.Parent then local c=((u.Position-r.Position)).Magnitude if c<=P.breakPalletRange and(z(r,u.Position,.55)and X(j))then d(1.0)A=q break end end end end end)end local aN=workspace.CurrentCamera local function oN(q)if q.Team then local c=q.Team.Name if c==P.teamKiller or(c:lower()):find("killer")then return"Killer"end end return"Survivor"end c.RenderStepped:Connect(function()if not P.aimbotEnabled then return end if not aN then aN=workspace.CurrentCamera end if not aN then return end local c=o()if c~="Survivor"and c~="Killer"then return end local r=aN.ViewportSize local u=Vector2.new(r.X/2,r.Y/2)local M,G=nil,math.huge for q,r in ipairs(q:GetPlayers())do if r==j then continue end local d=r.Character if not d then continue end local z=d:FindFirstChild("Humanoid")if not z or z.Health<=0 then continue end local Y=d:FindFirstChild("HumanoidRootPart")if not Y then continue end local O=oN(r)local a=(c=="Survivor"and O=="Killer")or(c=="Killer"and O=="Survivor")if not a then continue end local o,v=aN:WorldToViewportPoint(Y.Position)if not v then continue end local b=((Vector2.new(o.X,o.Y)-u)).Magnitude if b<=P.aimbotFOV and b<G then G=b M=Y end end if M then aN.CFrame=CFrame.new(aN.CFrame.Position,M.Position)end end)local vN=game:GetService("TweenService")local bN={bgDeep=Color3.fromRGB(13,14,19),bgPanel=Color3.fromRGB(20,22,28),bgHeader=Color3.fromRGB(26,28,36),bgInput=Color3.fromRGB(24,26,33),btnBase=Color3.fromRGB(30,33,41);btnHover=Color3.fromRGB(42,46,58),btnActive=Color3.fromRGB(50,54,68),borderLo=Color3.fromRGB(38,42,54);borderHi=Color3.fromRGB(62,68,84);textPri=Color3.fromRGB(232,235,245);textSec=Color3.fromRGB(150,156,172);textDim=Color3.fromRGB(95,100,115);accent=Color3.fromRGB(140,120,255),accentDim=Color3.fromRGB(90,75,180);success=Color3.fromRGB(110,220,150);danger=Color3.fromRGB(255,105,110);warning=Color3.fromRGB(255,200,90);info=Color3.fromRGB(95,210,235)}local XN=TweenInfo.new(.15,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)local xN=TweenInfo.new(.22,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)local UN=TweenInfo.new(.35,Enum.EasingStyle.Quint,Enum.EasingDirection.Out)local function TN(q,c,r)(vN:Create(q,c,r)):Play()end local function eN(q,c)local r=Instance.new("UICorner")r.CornerRadius=UDim.new(0,c or 6)r.Parent=q return r end local function hN(q,c,r,j)local u=Instance.new("UIStroke")u.Color=c or bN.borderLo u.Thickness=r or 1 u.Transparency=j or 0 u.ApplyStrokeMode=Enum.ApplyStrokeMode.Border u.Parent=q return u end local function VN(q,c,r,j)local u=Instance.new("UIGradient")u.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,c);ColorSequenceKeypoint.new(1,r)})u.Rotation=j or 90 u.Parent=q return u end local tN=Instance.new("ScreenGui")tN.Name="ArtheirsScript"tN.ResetOnSpawn=false tN.ZIndexBehavior=Enum.ZIndexBehavior.Sibling tN.IgnoreGuiInset=true pcall(function()tN.Parent=game:GetService("CoreGui")end)if not tN.Parent or not tN.Parent:IsA("CoreGui")then tN.Parent=j.PlayerGui end local BN,FN=240,598 local lN=Instance.new("Frame")lN.Name="Panel"lN.Size=UDim2.new(0,BN,0,FN)lN.Position=UDim2.new(0,16,0,44)lN.AnchorPoint=Vector2.new(0,0)lN.BackgroundColor3=bN.bgPanel lN.BorderSizePixel=0 lN.Active=true lN.Draggable=true lN.Parent=tN eN(lN,12)hN(lN,bN.borderHi,1,.35)VN(lN,Color3.fromRGB(28,30,38),Color3.fromRGB(18,20,26),135)local DN=Instance.new("Frame")DN.Size=UDim2.new(1,-4,1,-4)DN.Position=UDim2.new(0,2,0,2)DN.BackgroundTransparency=1 DN.BorderSizePixel=0 DN.Parent=lN eN(DN,10)hN(DN,Color3.fromRGB(70,78,100),1,.7)local JN=Instance.new("Frame")JN.Size=UDim2.new(1,0,0,56)JN.BackgroundColor3=bN.bgHeader JN.BorderSizePixel=0 JN.Parent=lN eN(JN,12)VN(JN,Color3.fromRGB(32,34,44),Color3.fromRGB(22,24,32),90)local wN=Instance.new("Frame")wN.Size=UDim2.new(1,0,0,14)wN.Position=UDim2.new(0,0,1,-14)wN.BackgroundColor3=Color3.fromRGB(22,24,32)wN.BackgroundTransparency=0 wN.BorderSizePixel=0 wN.ZIndex=0 wN.Parent=JN local gN=Instance.new("Frame")gN.Size=UDim2.new(1,-32,0,1)gN.Position=UDim2.new(0,16,1,0)gN.BackgroundColor3=bN.accent gN.BackgroundTransparency=.5 gN.BorderSizePixel=0 gN.Parent=JN VN(gN,Color3.fromRGB(140,120,255),Color3.fromRGB(95,210,235),0)local AN=Instance.new("Frame")AN.Size=UDim2.new(0,8,0,8)AN.Position=UDim2.new(0,16,0,14)AN.BackgroundColor3=bN.accent AN.BorderSizePixel=0 AN.Parent=JN eN(AN,4)local fN=Instance.new("Frame")fN.Size=UDim2.new(0,16,0,16)fN.Position=UDim2.new(0,12,0,10)fN.BackgroundColor3=bN.accent fN.BackgroundTransparency=.5 fN.BorderSizePixel=0 fN.ZIndex=AN.ZIndex-1 fN.Parent=JN eN(fN,8)task.spawn(function()while fN and fN.Parent do TN(fN,TweenInfo.new(1.2,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{BackgroundTransparency=.9,Size=UDim2.new(0,22,0,22);Position=UDim2.new(0,9,0,7)})break end end)local HN=Instance.new("TextLabel")HN.Size=UDim2.new(1,-90,0,18)HN.Position=UDim2.new(0,32,0,9)HN.BackgroundTransparency=1 HN.Text="ARTHEIRS"HN.TextColor3=bN.textPri HN.Font=Enum.Font.GothamBold HN.TextSize=15 HN.TextXAlignment=Enum.TextXAlignment.Left HN.Parent=JN local EN=Instance.new("TextLabel")EN.Size=UDim2.new(1,-90,0,14)EN.Position=UDim2.new(0,32,0,28)EN.BackgroundTransparency=1 EN.Text="Script \194\183 Violence District"EN.TextColor3=bN.textSec EN.Font=Enum.Font.Gotham EN.TextSize=10 EN.TextXAlignment=Enum.TextXAlignment.Left EN.Parent=JN local mN=Instance.new("Frame")mN.Size=UDim2.new(0,38,0,18)mN.Position=UDim2.new(1,-50,0,12)mN.BackgroundColor3=bN.btnBase mN.BorderSizePixel=0 mN.Parent=JN eN(mN,5)hN(mN,bN.accent,1,.4)local iN=Instance.new("TextLabel")iN.Size=UDim2.new(1,0,1,0)iN.BackgroundTransparency=1 iN.Text="v2.0"iN.TextColor3=bN.accent iN.Font=Enum.Font.GothamBold iN.TextSize=10 iN.Parent=mN local LN=Instance.new("Frame")LN.Size=UDim2.new(1,0,1,-56)LN.Position=UDim2.new(0,0,0,56)LN.BackgroundTransparency=1 LN.Parent=lN local function pN(q,c,r,j)j=j or LN local u=Instance.new("TextButton")u.Size=UDim2.new(0,BN-28,0,34)u.Position=UDim2.new(0,14,0,c)u.BackgroundColor3=bN.btnBase u.BorderSizePixel=0 u.Text="    "..q u.TextColor3=bN.textPri u.Font=Enum.Font.GothamMedium u.TextSize=12 u.TextXAlignment=Enum.TextXAlignment.Left u.AutoButtonColor=false u.Parent=j eN(u,8)local M=hN(u,bN.borderLo,1,.4)local G=Instance.new("Frame")G.Name="AccentBar"G.Size=UDim2.new(0,3,.55,0)G.Position=UDim2.new(0,6,.225,0)G.BackgroundColor3=bN.textDim G.BorderSizePixel=0 G.Parent=u eN(G,2)u.MouseEnter:Connect(function()TN(u,XN,{BackgroundColor3=bN.btnHover})TN(M,XN,{Transparency=.1;Color=bN.borderHi})end)u.MouseLeave:Connect(function()TN(u,XN,{BackgroundColor3=bN.btnBase})TN(M,XN,{Transparency=.4;Color=bN.borderLo})end)u.MouseButton1Down:Connect(function()TN(u,XN,{BackgroundColor3=bN.btnActive})end)u.MouseButton1Up:Connect(function()TN(u,XN,{BackgroundColor3=bN.btnHover})end)u.MouseButton1Click:Connect(r)return u end local function IN(q,c)local r=q:FindFirstChild("AccentBar")if r then TN(r,xN,{BackgroundColor3=c})end end local QN=10 local yN=50 local WN=90 local RN=130 local kN=170 local KN=210 local ZN=250 local NN=290 local SN=330 local sN=376 local CN=388 local nN=406 local q6=446 local c6=486 local r6=504 local j6=pN("[ROLE]  Auto: "..O,QN,function()if not P.roleOverride then P.roleOverride=true P.manualRole=O~="Unknown"and O or"Survivor"end P.manualRole=P.manualRole=="Survivor"and"Killer"or"Survivor"roleBtn.Text="    [ROLE]  Manual: "..P.manualRole local q=P.manualRole=="Killer"and bN.danger or bN.success IN(roleBtn,q)end)local function u6(q)if q=="Killer"then return bN.danger end if q=="Survivor"then return bN.success end return bN.textDim end IN(j6,u6(O));(j:GetPropertyChangedSignal("Team")):Connect(function()if not P.roleOverride then local q=a()O=q j6.Text="    [ROLE]  Auto: "..q IN(j6,u6(q))end end)local M6=pN("[1]  ESP : ON",yN,function()P.espEnabled=not P.espEnabled espBtn.Text="    [1]  ESP : "..((P.espEnabled and"ON"or"OFF"))IN(espBtn,P.espEnabled and bN.accent or bN.danger)end)IN(M6,bN.accent)local G6 local d6,z6,Y6,P6,O6,a6 G6=pN("[2]  Teleport Menu",WN,function()P.tpOpen=not P.tpOpen if d6 then d6.Visible=P.tpOpen end if P.tpOpen and z6 then z6()end IN(G6,P.tpOpen and bN.info or bN.textDim)end)local o6,v6,b6,X6 local function x6()o6.Text="    [4]  Fly : "..((P.flyEnabled and"ON"or"OFF"))IN(o6,P.flyEnabled and bN.info or bN.textDim)end local function U6()v6.Text="    [5]  Noclip : "..((P.noclipEnabled and"ON"or"OFF"))IN(v6,P.noclipEnabled and bN.info or bN.textDim)end local function T6()b6.Text="    [6]  Fullbright : "..((P.fullbrightEnabled and"ON"or"OFF"))IN(b6,P.fullbrightEnabled and bN.warning or bN.textDim)end local function e6()X6.Text="    [7]  Auto Repair : "..((P.autoRepairEnabled and"ON"or"OFF"))IN(X6,P.autoRepairEnabled and bN.success or bN.textDim)end local function h6()P.flyEnabled=not P.flyEnabled if P.flyEnabled then L()else p()end x6()end local function V6()P.noclipEnabled=not P.noclipEnabled if not P.noclipEnabled then local q=j.Character if q then for q,c in ipairs(q:GetDescendants())do if c:IsA("BasePart")and c.Name~="HumanoidRootPart"then c.CanCollide=true end end end end U6()end local function t6()P.fullbrightEnabled=not P.fullbrightEnabled if P.fullbrightEnabled then Z()else N()end T6()end local function B6()P.autoRepairEnabled=not P.autoRepairEnabled e6()end o6=pN("[4]  Fly : OFF",RN,h6)v6=pN("[5]  Noclip : OFF",kN,V6)b6=pN("[6]  Fullbright : OFF",KN,t6)X6=pN("[7]  Auto Repair : OFF",ZN,B6)local F6 local function l6()F6.Text="    [8]  Auto Escape : "..((P.autoEscapeEnabled and"ON"or"OFF"))IN(F6,P.autoEscapeEnabled and bN.success or bN.textDim)end local function D6()P.autoEscapeEnabled=not P.autoEscapeEnabled l6()end F6=pN("[8]  Auto Escape : OFF",NN,D6)local J6,w6 local function g6()J6.Text="    [9]  Aimbot : "..(((P.aimbotEnabled and"ON"or"OFF"))..("  \194\183  "..P.aimbotFOV))IN(J6,P.aimbotEnabled and bN.danger or bN.textDim)end local function A6()P.aimbotEnabled=not P.aimbotEnabled g6()end J6=pN("[9]  Aimbot : OFF  \194\183  120",SN,A6)local f6=Instance.new("Frame")f6.Size=UDim2.new(1,-28,0,1)f6.Position=UDim2.new(0,14,0,sN)f6.BackgroundColor3=bN.borderHi f6.BackgroundTransparency=.4 f6.BorderSizePixel=0 f6.Parent=LN local H6=Instance.new("TextLabel")H6.Size=UDim2.new(1,-28,0,14)H6.Position=UDim2.new(0,14,0,CN)H6.BackgroundTransparency=1 H6.Text="SPEED CONTROL"H6.TextColor3=bN.textSec H6.Font=Enum.Font.GothamBold H6.TextSize=9 H6.TextXAlignment=Enum.TextXAlignment.Left H6.Parent=LN local E6,m6 local function i6()E6.Text="    [3]  Speed : "..(((P.speedEnabled and"ON"or"OFF"))..("  \194\183  "..P.speedValue))IN(E6,P.speedEnabled and bN.info or bN.textDim)m6.Text=tostring(P.speedValue)end local function L6()P.speedEnabled=not P.speedEnabled local q=j.Character if q then local c=q:FindFirstChild("Humanoid")if c then c.WalkSpeed=P.speedEnabled and P.speedValue or 16 end end i6()end E6=pN("[3]  Speed : OFF  \194\183  30",nN,L6)local function p6(q,c,r,j)local u=Instance.new("TextButton")u.Size=UDim2.new(0,r,0,30)u.Position=UDim2.new(0,c,0,q6)u.BackgroundColor3=bN.btnBase u.BorderSizePixel=0 u.Text=q u.TextColor3=bN.textPri u.Font=Enum.Font.GothamBold u.TextSize=15 u.AutoButtonColor=false u.Parent=LN eN(u,7)local M=hN(u,bN.borderLo,1,.4)u.MouseEnter:Connect(function()TN(u,XN,{BackgroundColor3=bN.btnHover})TN(M,XN,{Color=bN.accent;Transparency=.2})end)u.MouseLeave:Connect(function()TN(u,XN,{BackgroundColor3=bN.btnBase})TN(M,XN,{Color=bN.borderLo;Transparency=.4})end)u.MouseButton1Click:Connect(j)return u end p6("\226\136\146",14,42,function()P.speedValue=math.max(P.speedMin,P.speedValue-P.speedStep)i6()end)m6=Instance.new("TextLabel")m6.Size=UDim2.new(0,106,0,30)m6.Position=UDim2.new(0,64,0,q6)m6.BackgroundColor3=bN.bgInput m6.BorderSizePixel=0 m6.Text="30"m6.TextColor3=bN.accent m6.Font=Enum.Font.GothamBold m6.TextSize=14 m6.TextXAlignment=Enum.TextXAlignment.Center m6.Parent=LN eN(m6,7)hN(m6,bN.accentDim,1,.3)p6("+",184,42,function()P.speedValue=math.min(P.speedMax,P.speedValue+P.speedStep)i6()end)local I6=Instance.new("TextLabel")I6.Size=UDim2.new(1,-28,0,14)I6.Position=UDim2.new(0,14,0,c6)I6.BackgroundTransparency=1 I6.Text="AIMBOT FOV"I6.TextColor3=bN.textSec I6.Font=Enum.Font.GothamBold I6.TextSize=9 I6.TextXAlignment=Enum.TextXAlignment.Left I6.Parent=LN local function Q6()if w6 then w6.Text=tostring(P.aimbotFOV)end g6()end local function y6(q,c,r,j)local u=Instance.new("TextButton")u.Size=UDim2.new(0,r,0,30)u.Position=UDim2.new(0,c,0,r6)u.BackgroundColor3=bN.btnBase u.BorderSizePixel=0 u.Text=q u.TextColor3=bN.textPri u.Font=Enum.Font.GothamBold u.TextSize=15 u.AutoButtonColor=false u.Parent=LN eN(u,7)local M=hN(u,bN.borderLo,1,.4)u.MouseEnter:Connect(function()TN(u,XN,{BackgroundColor3=bN.btnHover})TN(M,XN,{Color=bN.danger;Transparency=.2})end)u.MouseLeave:Connect(function()TN(u,XN,{BackgroundColor3=bN.btnBase})TN(M,XN,{Color=bN.borderLo,Transparency=.4})end)u.MouseButton1Click:Connect(j)return u end y6("\226\136\146",14,42,function()P.aimbotFOV=math.max(P.aimbotFOVMin,P.aimbotFOV-P.aimbotFOVStep)Q6()end)w6=Instance.new("TextLabel")w6.Size=UDim2.new(0,106,0,30)w6.Position=UDim2.new(0,64,0,r6)w6.BackgroundColor3=bN.bgInput w6.BorderSizePixel=0 w6.Text="120"w6.TextColor3=bN.danger w6.Font=Enum.Font.GothamBold w6.TextSize=14 w6.TextXAlignment=Enum.TextXAlignment.Center w6.Parent=LN eN(w6,7)hN(w6,bN.danger,1,.4)y6("+",184,42,function()P.aimbotFOV=math.min(P.aimbotFOVMax,P.aimbotFOV+P.aimbotFOVStep)Q6()end)local W6=Instance.new("Frame")W6.Size=UDim2.new(0,P.crosshairSize,0,P.crosshairSize)W6.AnchorPoint=Vector2.new(.5,.5)W6.Position=UDim2.new(.5,0,.5,0)W6.BackgroundColor3=Color3.fromRGB(255,255,255)W6.BorderSizePixel=0 W6.ZIndex=50 W6.Parent=tN eN(W6,math.floor(P.crosshairSize/2))local R6=Instance.new("Frame")R6.Size=UDim2.new(0,P.aimbotFOV*2,0,P.aimbotFOV*2)R6.AnchorPoint=Vector2.new(.5,.5)R6.Position=UDim2.new(.5,0,.5,0)R6.BackgroundTransparency=1 R6.BorderSizePixel=0 R6.Visible=false R6.ZIndex=49 R6.Parent=tN local k6=Instance.new("UICorner")k6.CornerRadius=UDim.new(.5,0)k6.Parent=R6 local K6=Instance.new("UIStroke")K6.Color=bN.danger K6.Thickness=1 K6.Transparency=.3 K6.Parent=R6 task.spawn(function()local q,c=false,-1 while task.wait(.1)do if R6 and R6.Parent then if P.aimbotEnabled~=q then q=P.aimbotEnabled R6.Visible=P.aimbotEnabled end if P.aimbotFOV~=c then c=P.aimbotFOV R6.Size=UDim2.new(0,P.aimbotFOV*2,0,P.aimbotFOV*2)end end end end)d6=Instance.new("Frame")d6.Name="TpPanel"d6.Size=UDim2.new(0,230,0,280)d6.Position=UDim2.new(0,BN+30,0,44)d6.BackgroundColor3=bN.bgPanel d6.BorderSizePixel=0 d6.Visible=false d6.Active=true d6.Draggable=true d6.Parent=tN eN(d6,12)hN(d6,bN.borderHi,1,.35)VN(d6,Color3.fromRGB(28,30,38),Color3.fromRGB(18,20,26),135)local Z6=Instance.new("Frame")Z6.Size=UDim2.new(1,0,0,38)Z6.BackgroundColor3=bN.bgHeader Z6.BorderSizePixel=0 Z6.Parent=d6 eN(Z6,12)local N6=Instance.new("Frame")N6.Size=UDim2.new(1,0,0,12)N6.Position=UDim2.new(0,0,1,-12)N6.BackgroundColor3=bN.bgHeader N6.BorderSizePixel=0 N6.Parent=Z6 local S6=Instance.new("Frame")S6.Size=UDim2.new(1,-32,0,1)S6.Position=UDim2.new(0,16,1,0)S6.BackgroundColor3=bN.info S6.BackgroundTransparency=.5 S6.BorderSizePixel=0 S6.Parent=Z6 local s6=Instance.new("Frame")s6.Size=UDim2.new(0,6,0,6)s6.Position=UDim2.new(0,16,.5,-3)s6.BackgroundColor3=bN.info s6.BorderSizePixel=0 s6.Parent=Z6 eN(s6,3)local C6=Instance.new("TextLabel")C6.Size=UDim2.new(1,-30,1,0)C6.Position=UDim2.new(0,28,0,0)C6.BackgroundTransparency=1 C6.Text="TELEPORT TO PLAYER"C6.TextColor3=bN.textPri C6.Font=Enum.Font.GothamBold C6.TextSize=12 C6.TextXAlignment=Enum.TextXAlignment.Left C6.Parent=Z6 a6=Instance.new("ScrollingFrame")a6.Size=UDim2.new(1,-16,1,-50)a6.Position=UDim2.new(0,8,0,44)a6.BackgroundTransparency=1 a6.BorderSizePixel=0 a6.ScrollBarThickness=3 a6.ScrollBarImageColor3=bN.accent a6.AutomaticCanvasSize=Enum.AutomaticSize.Y a6.CanvasSize=UDim2.new(0,0,0,0)a6.Parent=d6 local n6=Instance.new("UIListLayout")n6.FillDirection=Enum.FillDirection.Vertical n6.SortOrder=Enum.SortOrder.Name n6.Padding=UDim.new(0,5)n6.Parent=a6 local qa=Instance.new("UIPadding")qa.PaddingTop=UDim.new(0,4)qa.PaddingLeft=UDim.new(0,2)qa.PaddingRight=UDim.new(0,2)qa.Parent=a6 Y6={}P6=1 O6=function(q)if Y6[P6]and Y6[P6].button.Parent then local q=Y6[P6].button TN(q,xN,{BackgroundColor3=bN.btnBase})local c=q:FindFirstChildOfClass("UIStroke")if c then TN(c,xN,{Color=bN.borderLo;Transparency=.4})end end P6=q if Y6[P6]and Y6[P6].button.Parent then local q=Y6[P6].button TN(q,xN,{BackgroundColor3=bN.btnHover})local c=q:FindFirstChildOfClass("UIStroke")if c then TN(c,xN,{Color=bN.accent;Transparency=.1})end local r=q.AbsolutePosition.Y local j=a6.AbsolutePosition.Y local u=j+a6.AbsoluteSize.Y if r<j then a6.CanvasPosition=Vector2.new(0,a6.CanvasPosition.Y-38)elseif r+34>u then a6.CanvasPosition=Vector2.new(0,a6.CanvasPosition.Y+38)end end end z6=function()for q,c in ipairs(a6:GetChildren())do if c:IsA("TextButton")then c:Destroy()end end Y6={}P6=1 for q,c in ipairs(q:GetPlayers())do if c==j then continue end local r=Instance.new("TextButton")r.Name=c.Name r.Size=UDim2.new(1,-4,0,34)r.BackgroundColor3=bN.btnBase r.BorderSizePixel=0 r.Text="  "..c.DisplayName r.TextColor3=bN.textPri r.Font=Enum.Font.GothamMedium r.TextSize=12 r.TextXAlignment=Enum.TextXAlignment.Left r.AutoButtonColor=false r.Parent=a6 eN(r,7)local u=hN(r,bN.borderLo,1,.4)r.MouseEnter:Connect(function()TN(r,XN,{BackgroundColor3=bN.btnHover})end)r.MouseLeave:Connect(function()if Y6[P6]and Y6[P6].button~=r then TN(r,XN,{BackgroundColor3=bN.btnBase})end end)local M={player=c,button=r}table.insert(Y6,M)local G=#Y6 r.MouseButton1Click:Connect(function()O6(G)B(c)end)end if#Y6>0 then TN(Y6[1].button,xN,{BackgroundColor3=bN.btnHover})local q=Y6[1].button:FindFirstChildOfClass("UIStroke")if q then TN(q,xN,{Color=bN.accent;Transparency=.1})end end end q.PlayerAdded:Connect(function()if P.tpOpen then z6()end end)q.PlayerRemoving:Connect(function()if P.tpOpen then z6()end end)local ca=Instance.new("TextButton")ca.Name="MenuToggle"ca.Size=UDim2.new(0,130,0,28)ca.Position=UDim2.new(0,16,0,10)ca.BackgroundColor3=bN.bgHeader ca.BorderSizePixel=0 ca.Text="  \226\151\143  ARTHEIRS  \226\150\190"ca.TextColor3=bN.textPri ca.Font=Enum.Font.GothamBold ca.TextSize=12 ca.TextXAlignment=Enum.TextXAlignment.Left ca.AutoButtonColor=false ca.Active=true ca.Parent=tN eN(ca,8)local ra=hN(ca,bN.accent,1,.3)ca.MouseEnter:Connect(function()TN(ca,XN,{BackgroundColor3=bN.btnHover})TN(ra,XN,{Transparency=0})end)ca.MouseLeave:Connect(function()TN(ca,XN,{BackgroundColor3=bN.bgHeader})TN(ra,XN,{Transparency=.3})end)local function ja(q)lN.Visible=q ca.Text=q and"  \226\151\143  ARTHEIRS  \226\150\190"or"  \226\151\143  ARTHEIRS  \226\150\184"end local ua=true ca.MouseButton1Click:Connect(function()ua=not ua ja(ua)end)r.InputBegan:Connect(function(q,c)if q.KeyCode==Enum.KeyCode.Insert then ua=not ua ja(ua)end end)lN.Size=UDim2.new(0,BN,0,FN)lN.Visible=true local Ma=Instance.new("Frame")Ma.Size=UDim2.new(0,92,0,28)Ma.Position=UDim2.new(1,-108,0,16)Ma.AnchorPoint=Vector2.new(0,0)Ma.BackgroundColor3=bN.bgHeader Ma.BorderSizePixel=0 Ma.Parent=tN eN(Ma,8)hN(Ma,bN.borderHi,1,.4)VN(Ma,Color3.fromRGB(32,34,44),Color3.fromRGB(22,24,32),90)local Ga=Instance.new("Frame")Ga.Size=UDim2.new(0,6,0,6)Ga.Position=UDim2.new(0,10,.5,-3)Ga.BackgroundColor3=bN.success Ga.BorderSizePixel=0 Ga.Parent=Ma eN(Ga,3)local da=Instance.new("TextLabel")da.Size=UDim2.new(1,-22,1,0)da.Position=UDim2.new(0,22,0,0)da.BackgroundTransparency=1 da.Text="60 FPS"da.TextColor3=bN.textPri da.Font=Enum.Font.GothamBold da.TextSize=11 da.TextXAlignment=Enum.TextXAlignment.Left da.Parent=Ma local za,Ya=0,0 c.RenderStepped:Connect(function(q)za+=1 Ya+=q if Ya>=.5 then local q=math.floor(za/Ya+.5)da.Text=q.." FPS"local c if q>=50 then c=bN.success elseif q>=30 then c=bN.warning else c=bN.danger end TN(Ga,XN,{BackgroundColor3=c})za,Ya=0,0 end end)local function Pa(q,c,r)r=r or 3 local j=Instance.new("Frame")j.Size=UDim2.new(0,300,0,62)j.AnchorPoint=Vector2.new(.5,0)j.Position=UDim2.new(.5,0,0,-80)j.BackgroundColor3=bN.bgPanel j.BorderSizePixel=0 j.Parent=tN eN(j,12)hN(j,bN.accent,1,.2)VN(j,Color3.fromRGB(32,34,44),Color3.fromRGB(20,22,28),135)local u=Instance.new("Frame")u.Size=UDim2.new(0,18,0,18)u.Position=UDim2.new(0,12,.5,-9)u.BackgroundColor3=bN.accent u.BackgroundTransparency=.6 u.BorderSizePixel=0 u.Parent=j eN(u,9)local M=Instance.new("Frame")M.Size=UDim2.new(0,8,0,8)M.Position=UDim2.new(0,17,.5,-4)M.BackgroundColor3=bN.accent M.BorderSizePixel=0 M.Parent=j eN(M,4)local G=Instance.new("TextLabel")G.Size=UDim2.new(1,-50,0,20)G.Position=UDim2.new(0,38,0,12)G.BackgroundTransparency=1 G.Text=q G.TextColor3=bN.textPri G.Font=Enum.Font.GothamBold G.TextSize=13 G.TextXAlignment=Enum.TextXAlignment.Left G.Parent=j local d=Instance.new("TextLabel")d.Size=UDim2.new(1,-50,0,16)d.Position=UDim2.new(0,38,0,32)d.BackgroundTransparency=1 d.Text=c or""d.TextColor3=bN.textSec d.Font=Enum.Font.Gotham d.TextSize=11 d.TextXAlignment=Enum.TextXAlignment.Left d.Parent=j TN(j,UN,{Position=UDim2.new(.5,0,0,24)})task.delay(r,function()TN(j,xN,{Position=UDim2.new(.5,0,0,-80)})task.wait(.3)if j and j.Parent then j:Destroy()end end)end local Oa={}local function aa(q,c,r,j,u)local M=Instance.new("Frame")M.Size=UDim2.new(1,0,0,44)M.Position=UDim2.new(0,0,0,c)M.BackgroundColor3=bN.bgInput M.BackgroundTransparency=.6 M.BorderSizePixel=0 M.Parent=q eN(M,8)local G=Instance.new("UIPadding")G.PaddingLeft=UDim.new(0,12)G.PaddingRight=UDim.new(0,10)G.Parent=M local d=Instance.new("TextLabel")d.Size=UDim2.new(1,-36,1,0)d.BackgroundTransparency=1 d.Text=r d.TextColor3=bN.textPri d.Font=Enum.Font.GothamMedium d.TextSize=13 d.TextXAlignment=Enum.TextXAlignment.Left d.TextYAlignment=Enum.TextYAlignment.Center d.Parent=M local z=Instance.new("TextButton")z.Size=UDim2.new(0,22,0,22)z.Position=UDim2.new(1,-26,.5,-11)z.BackgroundColor3=bN.btnBase z.BorderSizePixel=0 z.Text=""z.AutoButtonColor=false z.Parent=M eN(z,5)local Y=hN(z,bN.borderLo,1.5,.2)local P=Instance.new("TextLabel")P.Size=UDim2.new(1,0,1,0)P.BackgroundTransparency=1 P.Text="\226\156\147"P.TextColor3=Color3.fromRGB(255,255,255)P.Font=Enum.Font.GothamBold P.TextSize=14 P.Visible=false P.Parent=z local function O(q)if q then TN(z,XN,{BackgroundColor3=bN.accent})TN(Y,XN,{Color=bN.accent,Transparency=0})P.Visible=true else TN(z,XN,{BackgroundColor3=bN.btnBase})TN(Y,XN,{Color=bN.borderLo;Transparency=.2})P.Visible=false end end z.MouseButton1Click:Connect(function()local q=not j()u(q)O(q)end)O(j())return M,O end local function oa(q,c,j,u,M,G,d,z)local Y=Instance.new("Frame")Y.Size=UDim2.new(1,0,0,50)Y.Position=UDim2.new(0,0,0,c)Y.BackgroundTransparency=1 Y.Parent=q local P=Instance.new("TextLabel")P.Size=UDim2.new(1,-60,0,18)P.Position=UDim2.new(0,0,0,0)P.BackgroundTransparency=1 P.Text=j P.TextColor3=bN.textPri P.Font=Enum.Font.GothamMedium P.TextSize=12 P.TextXAlignment=Enum.TextXAlignment.Left P.Parent=Y local O=Instance.new("Frame")O.Size=UDim2.new(0,50,0,20)O.Position=UDim2.new(1,-50,0,0)O.BackgroundColor3=bN.bgInput O.BorderSizePixel=0 O.Parent=Y eN(O,5)hN(O,bN.borderLo,1,.4)local a=Instance.new("TextLabel")a.Size=UDim2.new(1,0,1,0)a.BackgroundTransparency=1 a.Text=tostring(d())a.TextColor3=bN.accent a.Font=Enum.Font.GothamBold a.TextSize=11 a.TextXAlignment=Enum.TextXAlignment.Center a.Parent=O local o=Instance.new("Frame")o.Size=UDim2.new(1,0,0,5)o.Position=UDim2.new(0,0,0,32)o.BackgroundColor3=bN.bgInput o.BorderSizePixel=0 o.Parent=Y eN(o,3)local v=math.clamp(((d()-u))/((M-u)),0,1)local b=Instance.new("Frame")b.Size=UDim2.new(v,0,1,0)b.BackgroundColor3=bN.accent b.BorderSizePixel=0 b.Parent=o eN(b,3)local X=Instance.new("Frame")X.Size=UDim2.new(0,14,0,14)X.Position=UDim2.new(v,-7,.5,-7)X.BackgroundColor3=bN.textPri X.BorderSizePixel=0 X.Parent=o eN(X,7)hN(X,bN.accent,1.5,0)local x=false local function U(q)q=math.clamp(math.floor(q/G+.5)*G,u,M)z(q)local c=((q-u))/((M-u))b.Size=UDim2.new(c,0,1,0)X.Position=UDim2.new(c,-7,.5,-7)a.Text=tostring(q)end o.InputBegan:Connect(function(q)if q.UserInputType==Enum.UserInputType.MouseButton1 or q.UserInputType==Enum.UserInputType.Touch then x=true local c=q.Position.X local r=o.AbsolutePosition.X local j=o.AbsoluteSize.X local G=math.clamp(((c-r))/j,0,1)U(u+G*((M-u)))end end)r.InputChanged:Connect(function(q)if not x then return end if q.UserInputType~=Enum.UserInputType.MouseMovement and q.UserInputType~=Enum.UserInputType.Touch then return end local c=q.Position.X local r=o.AbsolutePosition.X local j=o.AbsoluteSize.X local G=math.clamp(((c-r))/j,0,1)U(u+G*((M-u)))end)r.InputEnded:Connect(function(q)if q.UserInputType==Enum.UserInputType.MouseButton1 or q.UserInputType==Enum.UserInputType.Touch then x=false end end)return Y,U end local function va(q,c,r)local j=Instance.new("Frame")j.Size=UDim2.new(1,0,0,30)j.Position=UDim2.new(0,0,0,c)j.BackgroundTransparency=1 j.Parent=q local u=Instance.new("Frame")u.Size=UDim2.new(0,3,0,14)u.Position=UDim2.new(0,0,0,4)u.BackgroundColor3=bN.accent u.BorderSizePixel=0 u.Parent=j eN(u,2)local M=Instance.new("TextLabel")M.Size=UDim2.new(1,-12,0,18)M.Position=UDim2.new(0,12,0,2)M.BackgroundTransparency=1 M.Text=r M.TextColor3=bN.textPri M.Font=Enum.Font.GothamBold M.TextSize=11 M.TextXAlignment=Enum.TextXAlignment.Left M.Parent=j local G=Instance.new("Frame")G.Size=UDim2.new(1,0,0,1)G.Position=UDim2.new(0,0,1,-2)G.BackgroundColor3=bN.borderLo G.BackgroundTransparency=.55 G.BorderSizePixel=0 G.Parent=j return j end local ba,Xa=660,480 local xa=160 local Ua=50 local Ta=ba-xa local ea=Instance.new("Frame")ea.Name="Window"ea.Size=UDim2.new(0,ba,0,Xa)ea.Position=UDim2.new(.5,-ba/2,.5,-Xa/2)ea.BackgroundColor3=bN.bgPanel ea.BorderSizePixel=0 ea.Active=true ea.Draggable=true ea.Visible=false ea.Parent=tN eN(ea,12)hN(ea,bN.borderHi,1,.35)local ha=Color3.fromRGB(10,11,15)local Va=Instance.new("Frame")Va.Size=UDim2.new(1,0,0,Ua)Va.BackgroundColor3=ha Va.BorderSizePixel=0 Va.Parent=ea eN(Va,12)local ta=Instance.new("Frame")ta.Size=UDim2.new(1,0,0,14)ta.Position=UDim2.new(0,0,1,-14)ta.BackgroundColor3=ha ta.BorderSizePixel=0 ta.Parent=Va local Ba=Instance.new("Frame")Ba.Size=UDim2.new(1,0,0,1)Ba.Position=UDim2.new(0,0,1,0)Ba.BackgroundColor3=bN.borderHi Ba.BackgroundTransparency=.5 Ba.BorderSizePixel=0 Ba.Parent=Va local Fa=Instance.new("TextLabel")Fa.Size=UDim2.new(0,200,0,18)Fa.Position=UDim2.new(0,18,0,9)Fa.BackgroundTransparency=1 Fa.Text="Artheirs"Fa.TextColor3=bN.textPri Fa.Font=Enum.Font.GothamBold Fa.TextSize=15 Fa.TextXAlignment=Enum.TextXAlignment.Left Fa.TextYAlignment=Enum.TextYAlignment.Center Fa.Parent=Va local la=Instance.new("TextLabel")la.Size=UDim2.new(0,200,0,14)la.Position=UDim2.new(0,18,0,27)la.BackgroundTransparency=1 la.Text="Violence District"la.TextColor3=bN.textSec la.Font=Enum.Font.Gotham la.TextSize=11 la.TextXAlignment=Enum.TextXAlignment.Left la.TextYAlignment=Enum.TextYAlignment.Center la.Parent=Va local function Da(q,c,r)local j=Instance.new("TextButton")j.Size=UDim2.new(0,26,0,22)j.Position=UDim2.new(1,c,0,10)j.BackgroundColor3=bN.btnBase j.BorderSizePixel=0 j.Text=q j.TextColor3=bN.textSec j.Font=Enum.Font.GothamBold j.TextSize=12 j.AutoButtonColor=false j.Parent=Va eN(j,5)j.MouseEnter:Connect(function()TN(j,XN,{BackgroundColor3=bN.btnHover})end)j.MouseLeave:Connect(function()TN(j,XN,{BackgroundColor3=bN.btnBase})end)j.MouseButton1Click:Connect(r)return j end Da("\226\136\146",-64,function()ea.Visible=false ca.Text="  \226\151\143  ARTHEIRS  \226\150\184"end)Da("\226\156\149",-32,function()ea.Visible=false ca.Text="  \226\151\143  ARTHEIRS  \226\150\184"end)local Ja=Instance.new("Frame")Ja.Size=UDim2.new(0,xa,1,-Ua)Ja.Position=UDim2.new(0,0,0,Ua)Ja.BackgroundColor3=Color3.fromRGB(15,17,22)Ja.BorderSizePixel=0 Ja.Parent=ea local wa=Instance.new("Frame")wa.Size=UDim2.new(0,1,1,0)wa.Position=UDim2.new(1,-1,0,0)wa.BackgroundColor3=bN.borderLo wa.BackgroundTransparency=.4 wa.BorderSizePixel=0 wa.Parent=Ja local ga=Instance.new("Frame")ga.Size=UDim2.new(0,Ta,1,-Ua)ga.Position=UDim2.new(0,xa,0,Ua)ga.BackgroundTransparency=1 ga.Parent=ea local Aa=Instance.new("UIPadding")Aa.PaddingLeft=UDim.new(0,28)Aa.PaddingRight=UDim.new(0,28)Aa.PaddingTop=UDim.new(0,22)Aa.PaddingBottom=UDim.new(0,22)Aa.Parent=ga local fa=Instance.new("TextLabel")fa.Size=UDim2.new(1,0,0,28)fa.BackgroundTransparency=1 fa.Text="Survivor"fa.TextColor3=bN.textPri fa.Font=Enum.Font.GothamBold fa.TextSize=22 fa.TextXAlignment=Enum.TextXAlignment.Left fa.Parent=ga local Ha=Instance.new("TextLabel")Ha.Size=UDim2.new(1,0,0,14)Ha.Position=UDim2.new(0,0,0,30)Ha.BackgroundTransparency=1 Ha.Text="Violence District \194\183 Configure features"Ha.TextColor3=bN.textDim Ha.Font=Enum.Font.Gotham Ha.TextSize=11 Ha.TextXAlignment=Enum.TextXAlignment.Left Ha.Parent=ga local Ea=Instance.new("ScrollingFrame")Ea.Size=UDim2.new(1,0,1,-58)Ea.Position=UDim2.new(0,0,0,58)Ea.BackgroundTransparency=1 Ea.BorderSizePixel=0 Ea.ScrollBarThickness=4 Ea.ScrollBarImageColor3=bN.borderHi Ea.CanvasSize=UDim2.new(0,0,0,600)Ea.AutomaticCanvasSize=Enum.AutomaticSize.Y Ea.ScrollingDirection=Enum.ScrollingDirection.Y Ea.Parent=ga local ma={}local ia=nil local function La(q)if ia==q then return end if ia and ma[ia]then ma[ia].Content.Visible=false ma[ia].SetActive(false)end ia=q if ma[q]then ma[q].Content.Visible=true ma[q].SetActive(true)fa.Text=ma[q].Heading or q end end local function pa(q,c)local r=Instance.new("TextButton")r.Size=UDim2.new(1,-20,0,36)r.Position=UDim2.new(0,10,0,c)r.BackgroundColor3=Color3.fromRGB(15,17,22)r.BorderSizePixel=0 r.Text="    "..q r.TextColor3=bN.textSec r.Font=Enum.Font.GothamMedium r.TextSize=13 r.TextXAlignment=Enum.TextXAlignment.Left r.AutoButtonColor=false r.Parent=Ja eN(r,6)local j=Instance.new("Frame")j.Size=UDim2.new(0,3,.55,0)j.Position=UDim2.new(0,0,.225,0)j.BackgroundColor3=bN.accent j.BorderSizePixel=0 j.Visible=false j.Parent=r eN(j,2)r.MouseEnter:Connect(function()if not r:GetAttribute("Active")then TN(r,XN,{BackgroundColor3=bN.btnBase})end end)r.MouseLeave:Connect(function()if not r:GetAttribute("Active")then TN(r,XN,{BackgroundColor3=Color3.fromRGB(15,17,22)})end end)local function u(q)r:SetAttribute("Active",q)j.Visible=q if q then TN(r,xN,{BackgroundColor3=bN.btnHover,TextColor3=bN.textPri})else TN(r,xN,{BackgroundColor3=Color3.fromRGB(15,17,22);TextColor3=bN.textSec})end end return r,u end local function Ia(q,c)local r=Instance.new("TextLabel")r.Size=UDim2.new(1,-20,0,16)r.Position=UDim2.new(0,18,0,c)r.BackgroundTransparency=1 r.Text=q r.TextColor3=bN.textDim r.Font=Enum.Font.GothamBold r.TextSize=10 r.TextXAlignment=Enum.TextXAlignment.Left r.Parent=Ja end local function Qa()local q=Instance.new("Frame")q.Size=UDim2.new(1,0,1,0)q.BackgroundTransparency=1 q.Visible=false q.Parent=Ea return q end Ia("GAMEPLAY",16)local ya={{name="Survivor";y=40;heading="Survivor"};{name="Killer",y=84,heading="Killer"}}Ia("VISUALS",138)local Wa={{name="ESP";y=162;heading="ESP"}}Ia("COMBAT",204)local Ra={{name="Combat",y=228,heading="Combat"}}Ia("MISC",270)local ka={{name="Misc";y=294;heading="Misc"}}local Ka={}for q,c in ipairs(ya)do table.insert(Ka,c)end for q,c in ipairs(Wa)do table.insert(Ka,c)end for q,c in ipairs(Ra)do table.insert(Ka,c)end for q,c in ipairs(ka)do table.insert(Ka,c)end for q,c in ipairs(Ka)do local r=Qa()local j,u=pa(c.name,c.y)j.MouseButton1Click:Connect(function()La(c.name)end)ma[c.name]={Item=j;Content=r,SetActive=u,Heading=c.heading}end local Za=Instance.new("Frame")Za.Size=UDim2.new(1,-20,0,46)Za.Position=UDim2.new(0,10,1,-58)Za.BackgroundColor3=bN.bgHeader Za.BorderSizePixel=0 Za.Parent=Ja eN(Za,7)hN(Za,bN.borderLo,1,.5)local Na=Instance.new("Frame")Na.Size=UDim2.new(0,8,0,8)Na.Position=UDim2.new(0,10,.5,-4)Na.BackgroundColor3=bN.success Na.BorderSizePixel=0 Na.Parent=Za eN(Na,4)local Sa=Instance.new("TextLabel")Sa.Size=UDim2.new(1,-28,0,14)Sa.Position=UDim2.new(0,24,0,6)Sa.BackgroundTransparency=1 Sa.Text=j.DisplayName or j.Name Sa.TextColor3=bN.textPri Sa.Font=Enum.Font.GothamBold Sa.TextSize=11 Sa.TextXAlignment=Enum.TextXAlignment.Left Sa.Parent=Za local sa=Instance.new("TextLabel")sa.Size=UDim2.new(1,-28,0,12)sa.Position=UDim2.new(0,24,0,20)sa.BackgroundTransparency=1 sa.Text="["..(O.."] Violence...")sa.TextColor3=bN.textSec sa.Font=Enum.Font.Gotham sa.TextSize=9 sa.TextXAlignment=Enum.TextXAlignment.Left sa.Parent=Za;(j:GetPropertyChangedSignal("Team")):Connect(function()task.wait(.1)sa.Text="["..(((P.roleOverride and P.manualRole or O)).."] Violence...")end)La("Survivor")lN.Visible=false d6.Visible=false ja=function(q)ea.Visible=q ca.Text=q and"  \226\151\143  ARTHEIRS  \226\150\190"or"  \226\151\143  ARTHEIRS  \226\150\184"end ea.Visible=true local Ca={}local function na()P.espEnabled=not P.espEnabled if M6 then M6.Text="    [1]  ESP : "..((P.espEnabled and"ON"or"OFF"))IN(M6,P.espEnabled and bN.accent or bN.danger)end end local function qH(q,c,r,j,u)return aa(q,c,r,function()return P[j]end,function(q)if P[j]~=q then u()end end)end do local q=ma.Survivor.Content va(q,0,"REPAIR")do local c,r=qH(q,38,"Auto Repair Generators","autoRepairEnabled",B6)Oa.autoRepair=r end do local c,r=qH(q,92,"Auto Escape (when killer near)","autoEscapeEnabled",D6)Oa.autoEscape=r end va(q,158,"RESCUE & HEAL")do local c,r=qH(q,196,"Auto Rescue Hooked Teammate","autoRescueEnabled",function()P.autoRescueEnabled=not P.autoRescueEnabled end)Oa.autoRescue=r end do local c,r=qH(q,250,"Auto Heal (self & team)","autoHealEnabled",function()P.autoHealEnabled=not P.autoHealEnabled end)Oa.autoHeal=r end do local c,r=qH(q,304,"Auto Unhook Self","autoUnhookEnabled",function()P.autoUnhookEnabled=not P.autoUnhookEnabled end)Oa.autoUnhook=r end va(q,368,"ROLE")local c=Instance.new("TextLabel")c.Size=UDim2.new(1,0,0,18)c.Position=UDim2.new(0,0,0,406)c.BackgroundTransparency=1 c.Text="Current: "..((P.roleOverride and("Manual "..P.manualRole)or("Auto "..O)))c.TextColor3=bN.textPri c.Font=Enum.Font.GothamMedium c.TextSize=12 c.TextXAlignment=Enum.TextXAlignment.Left c.Parent=q local function r(c,r,j,u)local M=Instance.new("TextButton")M.Size=UDim2.new(0,88,0,34)M.Position=UDim2.new(0,r,0,438)M.BackgroundColor3=bN.btnBase M.BorderSizePixel=0 M.Text=c M.TextColor3=bN.textSec M.Font=Enum.Font.GothamBold M.TextSize=10 M.AutoButtonColor=false M.Parent=q eN(M,6)local G=hN(M,bN.borderLo,1,.4)M.MouseEnter:Connect(function()TN(M,XN,{BackgroundColor3=bN.btnHover})end)M.MouseLeave:Connect(function()TN(M,XN,{BackgroundColor3=bN.btnBase})end)M.MouseButton1Click:Connect(u)return M,G end local u={}local function M()c.Text="Current: "..((P.roleOverride and("Manual "..P.manualRole)or("Auto "..O)))for q,c in pairs(u)do local r=(q=="Auto"and not P.roleOverride)or(q=="Survivor"and(P.roleOverride and P.manualRole=="Survivor"))or(q=="Killer"and(P.roleOverride and P.manualRole=="Killer"))if r then TN(c.btn,xN,{BackgroundColor3=c.color})TN(c.btn,xN,{TextColor3=bN.textPri})TN(c.stroke,xN,{Color=c.color,Transparency=0})else TN(c.btn,xN,{BackgroundColor3=bN.btnBase})TN(c.btn,xN,{TextColor3=bN.textSec})TN(c.stroke,xN,{Color=bN.borderLo,Transparency=.4})end end end local G,d=r("AUTO",0,bN.accent,function()P.roleOverride=false M()end)local z,Y=r("SURVIVOR",98,bN.success,function()P.roleOverride=true P.manualRole="Survivor"M()end)local a,o=r("KILLER",196,bN.danger,function()P.roleOverride=true P.manualRole="Killer"M()end)u.Auto={btn=G,stroke=d;color=bN.accent}u.Survivor={btn=z,stroke=Y,color=bN.success}u.Killer={btn=a,stroke=o;color=bN.danger}M();(j:GetPropertyChangedSignal("Team")):Connect(function()task.wait(.1)if not P.roleOverride then M()end end)end do local q=ma.Killer.Content va(q,0,"OFFENSIVE")do local c,r=qH(q,38,"Auto-Attack (M1) \226\128\148 melee + facing","autoAttackEnabled",function()P.autoAttackEnabled=not P.autoAttackEnabled end)Oa.autoAttack=r end do local c,r=qH(q,92,"Auto-Pickup Downed Survivor","autoPickupEnabled",function()P.autoPickupEnabled=not P.autoPickupEnabled end)Oa.autoPickup=r end do local c,r=qH(q,146,"Auto-Hook (after carrying)","autoHookEnabled",function()P.autoHookEnabled=not P.autoHookEnabled end)Oa.autoHook=r end do local c,r=qH(q,200,"Auto-Break Pallet","autoBreakPalletEnabled",function()P.autoBreakPalletEnabled=not P.autoBreakPalletEnabled end)Oa.autoBreakPallet=r end va(q,264,"ANTI-COUNTER (best-effort)")do local c,r=qH(q,302,"Anti-Pallet-Stun","antiPalletStunEnabled",function()P.antiPalletStunEnabled=not P.antiPalletStunEnabled end)Oa.antiPalletStun=r end do local c,r=qH(q,356,"Anti-Flashlight-Blind","antiFlashlightEnabled",function()P.antiFlashlightEnabled=not P.antiFlashlightEnabled end)Oa.antiFlashlight=r end do local c,r=qH(q,410,"Anti-Vault-Stun","antiVaultStunEnabled",function()P.antiVaultStunEnabled=not P.antiVaultStunEnabled end)Oa.antiVaultStun=r end do local c,r=qH(q,464,"Anti-Shoot-Stun (survivor gun)","antiShootStunEnabled",function()P.antiShootStunEnabled=not P.antiShootStunEnabled end)Oa.antiShootStun=r end va(q,528,"AWARENESS")do local c,r=qH(q,566,"Generator Repair Activity (red highlight)","genActivityEnabled",function()P.genActivityEnabled=not P.genActivityEnabled end)Oa.genActivity=r end end do local q=ma.ESP.Content va(q,0,"ESP TARGETS")do local c,r=qH(q,38,"ESP Killer (merah)","espKillerEnabled",function()P.espKillerEnabled=not P.espKillerEnabled end)Oa.espKiller=r end do local c,r=qH(q,92,"ESP Survivor (hijau / orange-HOOKED / kuning-DOWN)","espSurvivorEnabled",function()P.espSurvivorEnabled=not P.espSurvivorEnabled end)Oa.espSurvivor=r end do local c,r=qH(q,146,"ESP Generator (kuning + progress %)","espGeneratorEnabled",function()P.espGeneratorEnabled=not P.espGeneratorEnabled end)Oa.espGenerator=r end do local c,r=qH(q,200,"ESP Pallet (cyan)","espPalletEnabled",function()P.espPalletEnabled=not P.espPalletEnabled end)Oa.espPallet=r end va(q,264,"VISUALS")do local c,r=qH(q,302,"Fullbright","fullbrightEnabled",t6)Oa.fullbright=r end end do local c=ma.Misc.Content va(c,0,"GENERAL")do local q,r=qH(c,38,"God Mode (infinite health)","godModeEnabled",function()P.godModeEnabled=not P.godModeEnabled local q=j.Character if q then local c=q:FindFirstChild("Humanoid")if c then if P.godModeEnabled then pcall(function()c.MaxHealth=1000000000.0 c.Health=c.MaxHealth end)else pcall(function()c.MaxHealth=100 c.Health=math.min(c.Health,100)end)end end end end)Oa.godMode=r end va(c,102,"MOVEMENT")do local q,r=oa(c,140,"WalkSpeed",P.speedMin,P.speedMax,P.speedStep,function()return P.speedValue end,function(q)P.speedValue=q if m6 then m6.Text=tostring(q)end if E6 then i6()end if P.speedEnabled then local c=j.Character if c then local r=c:FindFirstChild("Humanoid")if r then r.WalkSpeed=q end end end end)Ca.speed=r end do local q,r=qH(c,202,"Speed Enabled","speedEnabled",L6)Oa.speed=r end va(c,266,"ABILITIES")do local q,r=qH(c,304,"Fly","flyEnabled",h6)Oa.fly=r end do local q,r=qH(c,358,"Noclip","noclipEnabled",V6)Oa.noclip=r end va(c,422,"TELEPORT TO PLAYER")local r=Instance.new("Frame")r.Size=UDim2.new(1,0,0,240)r.Position=UDim2.new(0,0,0,460)r.BackgroundTransparency=1 r.Parent=c local u=Instance.new("UIListLayout")u.FillDirection=Enum.FillDirection.Vertical u.Padding=UDim.new(0,6)u.Parent=r local function M()for q,c in ipairs(r:GetChildren())do if c:IsA("TextButton")then c:Destroy()end end for q,c in ipairs(q:GetPlayers())do if c==j then continue end local u=Instance.new("TextButton")u.Size=UDim2.new(1,-8,0,36)u.BackgroundColor3=bN.btnBase u.BorderSizePixel=0 u.Text="  "..c.DisplayName u.TextColor3=bN.textPri u.Font=Enum.Font.GothamMedium u.TextSize=12 u.TextXAlignment=Enum.TextXAlignment.Left u.AutoButtonColor=false u.Parent=r eN(u,6)local M=hN(u,bN.borderLo,1,.4)u.MouseEnter:Connect(function()TN(u,XN,{BackgroundColor3=bN.btnHover})TN(M,XN,{Color=bN.accent,Transparency=.1})end)u.MouseLeave:Connect(function()TN(u,XN,{BackgroundColor3=bN.btnBase})TN(M,XN,{Color=bN.borderLo,Transparency=.4})end)u.MouseButton1Click:Connect(function()B(c)end)end end M()q.PlayerAdded:Connect(M)q.PlayerRemoving:Connect(M)local G=La La=function(q)G(q)if q=="Misc"then M()end end end do local q=ma.Combat.Content va(q,0,"AIMBOT")local c,r=qH(q,38,"Aimbot (lock kamera ke target)","aimbotEnabled",A6)Oa.aimbot=r local j,u=oa(q,100,"FOV (pixel radius)",P.aimbotFOVMin,P.aimbotFOVMax,P.aimbotFOVStep,function()return P.aimbotFOV end,function(q)P.aimbotFOV=q if w6 then w6.Text=tostring(q)end if J6 then g6()end end)Ca.aimbot=u local M=Instance.new("TextLabel")M.Size=UDim2.new(1,0,0,16)M.Position=UDim2.new(0,0,0,134)M.BackgroundTransparency=1 M.Text="FOV ring visible at center screen when ON"M.TextColor3=bN.textDim M.Font=Enum.Font.Gotham M.TextSize=10 M.TextXAlignment=Enum.TextXAlignment.Left M.Parent=q end do local q={esp="espEnabled",espKiller="espKillerEnabled",espSurvivor="espSurvivorEnabled";espGenerator="espGeneratorEnabled";espPallet="espPalletEnabled",fly="flyEnabled";noclip="noclipEnabled",fullbright="fullbrightEnabled",autoRepair="autoRepairEnabled";autoEscape="autoEscapeEnabled",autoRescue="autoRescueEnabled";autoHeal="autoHealEnabled";autoUnhook="autoUnhookEnabled",aimbot="aimbotEnabled",speed="speedEnabled";godMode="godModeEnabled",autoAttack="autoAttackEnabled";autoPickup="autoPickupEnabled";autoHook="autoHookEnabled",autoBreakPallet="autoBreakPalletEnabled",antiPalletStun="antiPalletStunEnabled";antiFlashlight="antiFlashlightEnabled";antiVaultStun="antiVaultStunEnabled",antiShootStun="antiShootStunEnabled";genActivity="genActivityEnabled"}local c={}task.spawn(function()while task.wait(.1)do for q,r in pairs(q)do local j=P[r]if c[q]~=j then c[q]=j local r=Oa[q]if r then r(j)end end end if Ca.speed and c.speedValue~=P.speedValue then c.speedValue=P.speedValue Ca.speed(P.speedValue)end if Ca.aimbot and c.aimbotFOV~=P.aimbotFOV then c.aimbotFOV=P.aimbotFOV Ca.aimbot(P.aimbotFOV)end end end)end task.delay(.5,function()Pa("ARTHEIRS SCRIPT LOADED \226\156\147","v2.0  \194\183  Violence District",3.5)end)r.InputBegan:Connect(function(q,c)local r=q.KeyCode if not c then if r==P.KEY_ESP then P.espEnabled=not P.espEnabled M6.Text="    [1]  ESP : "..((P.espEnabled and"ON"or"OFF"))IN(M6,P.espEnabled and bN.accent or bN.danger)elseif r==P.KEY_TP then if not ea.Visible then ea.Visible=true ca.Text="  \226\151\143  ARTHEIRS  \226\150\190"ua=true end La("Teleport")elseif r==P.KEY_SPEED then L6()elseif r==P.KEY_FLY then h6()elseif r==P.KEY_NOCLIP then V6()elseif r==P.KEY_FULLBRIGHT then t6()elseif r==P.KEY_AUTOREPAIR then B6()elseif r==P.KEY_AUTOESCAPE then D6()elseif r==P.KEY_AIMBOT then A6()end end if r==Enum.KeyCode.Up and(P.tpOpen and#Y6>0)then local q=P6-1 if q<1 then q=#Y6 end O6(q)elseif r==Enum.KeyCode.Down and(P.tpOpen and#Y6>0)then local q=P6+1 if q>#Y6 then q=1 end O6(q)elseif r==Enum.KeyCode.Return and P.tpOpen then if Y6[P6]then B(Y6[P6].player)end elseif r==Enum.KeyCode.Left then P.speedValue=math.max(P.speedMin,P.speedValue-P.speedStep)i6()elseif r==Enum.KeyCode.Right then P.speedValue=math.min(P.speedMax,P.speedValue+P.speedStep)i6()end end)print("[Artheirs] Script loaded \226\156\147")print("[Artheirs] Team  : "..((j.Team and j.Team.Name or"nil (belum assign)")))print("[Artheirs] Role  : "..o())print("[Artheirs] [1] ESP  |  [2] Teleport  |  [3] Speed  |  INSERT = Toggle Menu")print("[Artheirs] [4] Fly  |  [5] Noclip   |  [6] Fullbright  |  [7] Auto Repair")print("[Artheirs] [8] Auto Escape   |  [9] Aimbot")print("[Artheirs] Teleport: UP/DOWN pilih, ENTER konfirmasi")print("[Artheirs] Speed   : LEFT/RIGHT adjust nilai")print("[Artheirs] Fly     : WASD = gerak, SPACE = naik, LCTRL = turun")print("[Artheirs] AutoRepair: deket generator (<12 studs) \226\134\146 auto hold left mouse")print("[Artheirs] AutoEscape: Survivor + AutoRepair ON + killer dekat \226\134\146 TP ke safest survivor")print("[Artheirs] Aimbot  : lock kamera ke target dalam FOV pixel radius (adjust via menu)")
+-- ===========================================================
+--  [CURE] Violence District  |  Kentod Cheat v1.0
+--  Executor : Solara
+-- ===========================================================
+--  FITUR:
+--    [1]      Toggle ESP
+--             - Survivor : ESP Killer (merah) + ESP Generator (kuning)
+--             - Killer   : ESP Survivor (hijau)
+--    [2]      Toggle Teleport Menu (UP/DOWN pilih, ENTER konfirmasi)
+--    [3]      Toggle Speed  (LEFT/RIGHT adjust nilai)
+--    [INSERT] Toggle tampilan menu
+-- ===========================================================
+--  CATATAN KONFIGURASI:
+--    Jika ESP tidak muncul, sesuaikan:
+--      CFG.teamKiller / teamSurvivor  → nama Team di game
+--      CFG.genNames                   → nama Generator di workspace
+-- ===========================================================
+
+-- ── SERVICES ────────────────────────────────────────────────
+local Players    = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS        = game:GetService("UserInputService")
+
+local LP = Players.LocalPlayer
+
+-- ===========================================================
+--  ACCESS CONTROL — Dynamic Whitelist (fetch dari GitHub)
+--  Whitelist di-host terpisah di whitelist.lua. Tambah/hapus user
+--  cukup edit file kecil itu, script utama ga perlu di-recompile/
+--  re-obfuscate. Lihat SETUP_GITHUB_GUIDE.md untuk workflow.
+-- ===========================================================
+
+-- GANTI URL ini ke raw GitHub whitelist.lua kamu setelah upload.
+-- Format: https://raw.githubusercontent.com/<USER>/<REPO>/refs/heads/main/whitelist.lua
+local WHITELIST_URL = "https://raw.githubusercontent.com/artheirs/artheirs-vd/refs/heads/main/whitelist.lua"
+
+-- Emergency owner fallback: kalau fetch whitelist gagal (GitHub down,
+-- network block, dll), UserId di sini tetap di-allow supaya owner ga
+-- ke-lock dari script-nya sendiri saat lagi testing/maintenance.
+local OWNER_FALLBACK = { 8961991252 }  -- Cio
+
+local function _fetchWhitelist()
+    -- Cache-bust query supaya GitHub CDN ga return stale whitelist
+    local url = WHITELIST_URL .. "?t=" .. tostring(os.time())
+    local ok, body = pcall(function()
+        return game:HttpGet(url, true)
+    end)
+    if not ok or type(body) ~= "string" or #body == 0 then
+        return nil, "fetch failed"
+    end
+    local fn, errC = loadstring(body)
+    if not fn then return nil, "compile: " .. tostring(errC) end
+    local ok2, result = pcall(fn)
+    if not ok2 or type(result) ~= "table" then
+        return nil, "exec: " .. tostring(result)
+    end
+    return result, nil
+end
+
+local function _isAuthorized()
+    local myId = LP.UserId
+
+    -- 1. Coba whitelist live dari GitHub
+    local list, err = _fetchWhitelist()
+    if list then
+        for _, id in ipairs(list) do
+            if id == myId then return true, "live" end
+        end
+        return false, "live"
+    end
+
+    -- 2. Fetch gagal → cek emergency owner fallback (offline-safe)
+    for _, id in ipairs(OWNER_FALLBACK) do
+        if id == myId then return true, "fallback (" .. tostring(err) .. ")" end
+    end
+    return false, "fetch failed: " .. tostring(err)
+end
+
+local _ok, _src = _isAuthorized()
+if not _ok then
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title    = "Artheirs Script",
+            Text     = "Access Denied — UserId kamu tidak di whitelist",
+            Duration = 10,
+        })
+    end)
+    warn("[ARTHEIRS] Access denied for UserId " .. tostring(LP.UserId)
+        .. " — reason: " .. tostring(_src))
+    return
+end
+
+
+-- ── CONFIG ──────────────────────────────────────────────────
+local CFG = {
+    -- Keybind
+    KEY_ESP     = Enum.KeyCode.One,
+    KEY_TP      = Enum.KeyCode.Two,
+    KEY_SPEED   = Enum.KeyCode.Three,
+    KEY_FLY        = Enum.KeyCode.Four,
+    KEY_NOCLIP     = Enum.KeyCode.Five,
+    KEY_FULLBRIGHT = Enum.KeyCode.Six,
+    KEY_AUTOREPAIR = Enum.KeyCode.Seven,
+    KEY_AUTOESCAPE = Enum.KeyCode.Eight,
+    KEY_AIMBOT     = Enum.KeyCode.Nine,
+
+    -- State
+    espEnabled   = true,  -- master switch (keybind [1] toggles ini)
+    -- Sub-toggles untuk granular ESP control (UI di ESP tab)
+    espKillerEnabled    = true,
+    espSurvivorEnabled  = true,
+    espGeneratorEnabled = true,
+    espPalletEnabled    = false,
+    tpOpen       = false,
+    roleOverride = false,
+    manualRole   = "Survivor",
+
+    -- Speedhack
+    speedEnabled = false,
+    speedValue   = 30,
+    speedMin     = 16,
+    speedMax     = 200,
+    speedStep    = 5,
+
+    -- Fly / Noclip / Fullbright
+    flyEnabled        = false,
+    flySpeedMul       = 1.5,   -- pengali kecepatan fly dari speedValue
+    noclipEnabled     = false,
+    fullbrightEnabled = false,
+
+    -- Auto Repair (auto-detect gen terdekat, tidak perlu toggle per gen)
+    autoRepairEnabled = false,
+    autoRepairRange   = 18,    -- jarak max ke generator (studs) buat hold mouse
+    autoRepairTick    = 0.1,   -- interval cek (detik) — lebih responsive saat pindah gen
+
+    -- Auto Escape (TP otomatis pas killer dekat saat lagi repair)
+    autoEscapeEnabled = false,
+    escapeDistance    = 40,    -- studs, killer dianggap "bahaya"
+    escapeCooldown    = 3,     -- detik antar trigger TP
+    escapeTick        = 0.2,   -- interval cek (detik)
+
+    -- Aimbot (lock kamera ke target dalam FOV pixel radius)
+    aimbotEnabled = false,
+    aimbotFOV     = 120,       -- radius pixel dari center screen
+    aimbotFOVMin  = 30,
+    aimbotFOVMax  = 400,
+    aimbotFOVStep = 10,
+
+    -- Crosshair (always-on dot)
+    crosshairSize = 4,         -- pixel
+
+    -- Generator progress display (di ESP label)
+    genProgressShow = true,
+
+    -- Auto Rescue hooked teammate (TP + hold mouse di hook)
+    autoRescueEnabled = false,
+    rescueRange       = 12,    -- jarak max ke hook
+    rescueCooldown    = 4,     -- detik antar trigger
+    rescueTick        = 0.2,
+
+    -- Auto Heal (self atau team yang darahnya berkurang/knockdown)
+    autoHealEnabled = false,
+    healRange       = 10,
+    healSelfHpThreshold = 90,  -- heal diri sendiri kalau HP < 90% max
+    healTick        = 0.3,
+
+    -- Auto Unhook Self (saat karakter sendiri di-hook)
+    autoUnhookEnabled = false,
+    unhookTick        = 0.15,
+
+    -- KILLER FEATURES ────────────────────────────────────
+    -- Auto-Attack M1 (saat survivor melee range + facing)
+    autoAttackEnabled = false,
+    autoAttackRange   = 7,      -- studs melee range
+    autoAttackFOV     = 0.45,   -- dot product threshold (0.45 ≈ 60° cone)
+    autoAttackTick    = 0.08,
+
+    -- Auto-Pickup downed survivor
+    autoPickupEnabled = false,
+    pickupRange       = 8,
+    pickupTick        = 0.25,
+
+    -- Auto-Hook (after carrying survivor, walk + interact at hook)
+    autoHookEnabled = false,
+    hookRange       = 6,
+    hookTick        = 0.4,
+
+    -- Generator Activity (show gens being repaired on killer ESP)
+    genActivityEnabled = true,
+    genActivityRange   = 8,     -- survivor in this range = gen "active"
+
+    -- Anti-stun (signal-based, instant response — covers semua stun source)
+    antiPalletStunEnabled  = false,
+    antiFlashlightEnabled  = false,
+    antiVaultStunEnabled   = false,
+    antiShootStunEnabled   = false,
+    antiStunTick           = 0.05,
+
+    -- Auto-Break pallet (dropped pallet in range + facing → auto break)
+    autoBreakPalletEnabled = false,
+    breakPalletRange       = 8,
+    breakPalletTick        = 0.3,
+
+    -- God Mode (signal-based health reset)
+    godModeEnabled = false,
+
+    -- Warna
+    colorKiller    = Color3.fromRGB(255, 80,  80),
+    colorSurvivor  = Color3.fromRGB(80,  255, 80),
+    colorGenerator = Color3.fromRGB(255, 220, 50),
+
+    -- Nama Team di Violence District (edit jika perlu)
+    teamKiller   = "Killers",
+    teamSurvivor = "Survivors",
+
+    -- Nama EXACT Generator Model di workspace (case-sensitive, edit jika perlu)
+    genNames = {"Generator"},
+}
+
+-- ============================================================
+--  STEP 1: ROLE DETECTION + CACHE
+--  Cache di-update tiap ganti team atau respawn.
+--  Tidak compute ulang di setiap frame → lebih efisien.
+-- ============================================================
+local roleCache = "Survivor"
+
+local function computeRole()
+    if LP.Team then
+        local t  = LP.Team.Name
+        local tl = t:lower()
+
+        -- Exact match (paling aman)
+        if t == CFG.teamKiller   then return "Killer"   end
+        if t == CFG.teamSurvivor then return "Survivor" end
+
+        -- Exact lower match untuk variasi umum
+        if tl == "killer"   or tl == "killers"   then return "Killer"   end
+        if tl == "survivor" or tl == "survivors" then return "Survivor" end
+
+        -- Fallback ukuran team: Killer biasanya sendirian di teamnya (1 orang)
+        -- Survivor berada di tim yang sama bersama survivor lain (>1 orang)
+        local teamCount = 0
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p.Team == LP.Team then teamCount += 1 end
+        end
+        if teamCount == 1 then return "Killer" end
+        return "Survivor"
+    end
+
+    -- Belum ada team / masih di lobby
+    return "Lobby"
+end
+
+local function getRole()
+    if CFG.roleOverride then return CFG.manualRole end
+    return roleCache
+end
+
+-- Update cache saat team berubah
+LP:GetPropertyChangedSignal("Team"):Connect(function()
+    roleCache = computeRole()
+end)
+
+-- Update cache saat respawn (delay 0.5 detik agar nilai sudah terset)
+LP.CharacterAdded:Connect(function(char)
+    task.delay(0.5, function()
+        roleCache = computeRole()
+        -- Pantau perubahan Role value di dalam character
+        local rv = char:FindFirstChild("Role")
+        if rv and rv:IsA("StringValue") then
+            rv:GetPropertyChangedSignal("Value"):Connect(function()
+                roleCache = computeRole()
+            end)
+        end
+    end)
+end)
+
+-- Inisialisasi pertama
+roleCache = computeRole()
+
+-- ============================================================
+--  STEP 2: HELPER — JARAK
+-- ============================================================
+local function getDistance(targetPos)
+    local char = LP.Character
+    if not char then return 0 end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return 0 end
+    return math.floor((root.Position - targetPos).Magnitude)
+end
+
+-- ============================================================
+--  STEP 3: ESP CORE
+--  Pattern: create-once, update teks tiap frame.
+--  BillboardGui disimpan di dalam BasePart target (hrp / part).
+-- ============================================================
+local function getOrCreateESP(part)
+    local bb = part:FindFirstChild("_VD_ESP")
+    if bb then return bb end
+
+    bb                  = Instance.new("BillboardGui")
+    bb.Name             = "_VD_ESP"
+    bb.AlwaysOnTop      = true
+    bb.Size             = UDim2.new(0, 140, 0, 40)
+    bb.StudsOffset      = Vector3.new(0, 3.5, 0)
+    bb.ResetOnSpawn     = false
+    bb.LightInfluence   = 0
+    bb.Enabled          = false
+
+    local lbl                   = Instance.new("TextLabel")
+    lbl.Name                    = "Label"
+    lbl.Size                    = UDim2.new(1, 0, 1, 0)
+    lbl.BackgroundTransparency  = 1
+    lbl.TextStrokeTransparency  = 0
+    lbl.TextStrokeColor3        = Color3.new(0, 0, 0)
+    lbl.Font                    = Enum.Font.GothamBold
+    lbl.TextSize                = 13
+    lbl.TextXAlignment          = Enum.TextXAlignment.Center
+    lbl.Parent                  = bb
+
+    bb.Parent = part
+    return bb
+end
+
+local function showESP(part, color, text)
+    if not part or not part.Parent then return end
+    local bb  = getOrCreateESP(part)
+    local lbl = bb:FindFirstChild("Label")
+    if not lbl then return end
+    lbl.TextColor3 = color
+    lbl.Text       = text
+    bb.Enabled     = true
+end
+
+local function hideESP(part)
+    if not part then return end
+    local bb = part:FindFirstChild("_VD_ESP")
+    if bb then bb.Enabled = false end
+end
+
+-- ── Chams Highlight (body fill + outline, tembus tembok) ────
+-- Pattern: create-once per Character, toggle Enabled & ganti color sesuai role.
+-- Subtle: fill transparency 0.7 (tint ringan), outline 0 (jelas).
+local function getOrCreateHL(char)
+    if not char then return nil end
+    local h = char:FindFirstChild("_VD_HL")
+    if h then return h end
+
+    h                     = Instance.new("Highlight")
+    h.Name                = "_VD_HL"
+    h.Adornee             = char
+    h.DepthMode           = Enum.HighlightDepthMode.AlwaysOnTop
+    h.FillTransparency    = 0.7  -- subtle body tint
+    h.OutlineTransparency = 0    -- outline tegas
+    h.Enabled             = false
+    h.Parent              = char
+    return h
+end
+
+local function showHL(char, fillColor, outlineColor)
+    local h = getOrCreateHL(char)
+    if not h then return end
+    h.FillColor    = fillColor
+    h.OutlineColor = outlineColor
+    h.Enabled      = true
+end
+
+local function hideHL(char)
+    if not char then return end
+    local h = char:FindFirstChild("_VD_HL")
+    if h then h.Enabled = false end
+end
+
+-- ============================================================
+--  STEP 4: GENERATOR SCANNER (cache 5 detik)
+-- ============================================================
+local genCache    = {}
+local genLastScan = 0
+
+local function getGenerators()
+    local now = tick()
+    if now - genLastScan < 5 then return genCache end
+    genLastScan = now
+    genCache    = {}
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        -- Hanya Model (bukan sub-part), exact name match
+        if not obj:IsA("Model") then continue end
+
+        local matched = false
+        for _, name in ipairs(CFG.genNames) do
+            if obj.Name == name then matched = true break end
+        end
+        if not matched then continue end
+
+        -- Satu entry per Model menggunakan PrimaryPart atau BasePart pertama
+        local part = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+        if part and not table.find(genCache, part) then
+            table.insert(genCache, part)
+        end
+    end
+    return genCache
+end
+
+-- ============================================================
+--  STEP 5: TELEPORT
+-- ============================================================
+local function teleportTo(target)
+    local myChar = LP.Character
+    local tChar  = target.Character
+    if not myChar or not tChar then return end
+
+    local myRoot = myChar:FindFirstChild("HumanoidRootPart")
+    local tRoot  = tChar:FindFirstChild("HumanoidRootPart")
+    if not myRoot or not tRoot then return end
+
+    myRoot.CFrame = tRoot.CFrame
+end
+
+-- ============================================================
+--  STEP 6: ESP UPDATE LOOP
+-- ============================================================
+-- Tracker generator yang lagi di-highlight (persist across frames)
+local lastGenModels = {}
+local lastGenParts  = {}  -- track BillboardGui ESP labels supaya bisa di-hide saat Killer
+-- Tracker pallet ESP
+local lastPalletModels = {}
+local lastPalletParts  = {}
+
+-- Shared helpers table (1 local, hemat register vs 3 forward decl).
+-- Diisi di section bawah (STEP 6.7/6.8). ESP loop akses via _H.fn(...).
+local _H = {}
+
+RunService.RenderStepped:Connect(function()
+    local myRole = getRole()
+
+    -- ── Player ESP + Chams ─────────────────────────────────
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p == LP then continue end
+
+        local char = p.Character
+        if not char then continue end
+
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        local hum = char:FindFirstChild("Humanoid")
+
+        -- Guard: karakter belum siap atau sudah mati
+        if not hrp or not hum or hum.Health <= 0 then
+            if hrp then hideESP(hrp) end
+            hideHL(char)
+            continue
+        end
+
+        -- Tentukan role target berdasarkan team-nya
+        local targetRole = "Survivor"
+        if p.Team then
+            local tn = p.Team.Name
+            if tn == CFG.teamKiller or tn:lower():find("killer") then
+                targetRole = "Killer"
+            end
+        end
+
+        -- Show condition: master ON + sub-toggle by target role
+        local subOn = (targetRole == "Killer"   and CFG.espKillerEnabled)
+                   or (targetRole == "Survivor" and CFG.espSurvivorEnabled)
+        local shouldShow = CFG.espEnabled and subOn
+            and (
+                (myRole == "Survivor" and targetRole == "Killer")
+             or (myRole == "Survivor" and targetRole == "Survivor")
+             or (myRole == "Killer"   and targetRole == "Survivor")
+            )
+
+        if shouldShow then
+            local labelColor, chamsFill, chamsOutline
+            local stateTag = ""
+            if targetRole == "Killer" then
+                labelColor   = CFG.colorKiller
+                chamsFill    = Color3.fromRGB(255, 80, 80)
+                chamsOutline = Color3.fromRGB(255,  0,  0)
+            elseif _H.isPlayerHooked and _H.isPlayerHooked(p) then
+                -- Hooked teammate → orange terang, label "HOOKED"
+                labelColor   = Color3.fromRGB(255, 150, 50)
+                chamsFill    = Color3.fromRGB(255, 140, 40)
+                chamsOutline = Color3.fromRGB(255, 100,  0)
+                stateTag     = " · HOOKED"
+            elseif _H.isPlayerDowned and _H.isPlayerDowned(p) then
+                -- Downed teammate → kuning
+                labelColor   = Color3.fromRGB(255, 220, 80)
+                chamsFill    = Color3.fromRGB(255, 220, 80)
+                chamsOutline = Color3.fromRGB(220, 180,  0)
+                stateTag     = " · DOWN"
+            else
+                labelColor   = CFG.colorSurvivor
+                chamsFill    = Color3.fromRGB(80, 255, 100)
+                chamsOutline = Color3.fromRGB( 0, 220,  0)
+            end
+            local dist = getDistance(hrp.Position)
+            showESP(hrp, labelColor, p.DisplayName .. "\n[" .. dist .. "m]" .. stateTag)
+            showHL(char, chamsFill, chamsOutline)
+        else
+            hideESP(hrp)
+            hideHL(char)
+        end
+    end
+
+    -- ── Generator ESP + Chams (khusus Survivor) ─────────────
+    if myRole == "Survivor" and CFG.espEnabled and CFG.espGeneratorEnabled then
+        local current = {}
+        local currentParts = {}
+        for _, part in ipairs(getGenerators()) do
+            local dist  = getDistance(part.Position)
+            local label = "Generator\n[" .. dist .. "m]"
+            if CFG.genProgressShow then
+                local pct = _H.getGenProgress and _H.getGenProgress(part)
+                if pct then
+                    label = label .. " · " .. math.floor(pct + 0.5) .. "%"
+                end
+            end
+            showESP(part, CFG.colorGenerator, label)
+            currentParts[part] = true
+
+            -- Highlight whole generator model (tembus tembok, warna kuning)
+            local model = part:FindFirstAncestorWhichIsA("Model")
+            if model then
+                showHL(model, Color3.fromRGB(255, 220, 50), Color3.fromRGB(255, 200, 0))
+                current[model] = true
+            end
+        end
+        -- Hide model lama yg ga ada di scan terbaru (jaga-jaga kalau gen di-destroy)
+        for model in pairs(lastGenModels) do
+            if not current[model] and model and model.Parent then
+                hideHL(model)
+            end
+        end
+        for part in pairs(lastGenParts) do
+            if not currentParts[part] and part and part.Parent then
+                hideESP(part)
+            end
+        end
+        lastGenModels = current
+        lastGenParts  = currentParts
+    elseif myRole == "Killer" and CFG.espEnabled and CFG.espGeneratorEnabled and CFG.genActivityEnabled then
+        -- Killer mode: hanya tampilkan gen yang lagi di-repair (ada survivor near)
+        local current = {}
+        local currentParts = {}
+        for _, part in ipairs(getGenerators()) do
+            local active = false
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LP and p.Team and p.Team.Name == CFG.teamSurvivor then
+                    local c = p.Character
+                    local r = c and c:FindFirstChild("HumanoidRootPart")
+                    if r and (r.Position - part.Position).Magnitude <= CFG.genActivityRange then
+                        active = true
+                        break
+                    end
+                end
+            end
+            if active then
+                local dist = getDistance(part.Position)
+                local label = "ACTIVE GEN\n[" .. dist .. "m]"
+                if CFG.genProgressShow then
+                    local pct = _H.getGenProgress and _H.getGenProgress(part)
+                    if pct then label = label .. " · " .. math.floor(pct + 0.5) .. "%" end
+                end
+                showESP(part, Color3.fromRGB(255, 80, 80), label)
+                currentParts[part] = true
+                local model = part:FindFirstAncestorWhichIsA("Model")
+                if model then
+                    showHL(model, Color3.fromRGB(255, 80, 80), Color3.fromRGB(220, 0, 0))
+                    current[model] = true
+                end
+            end
+        end
+        for model in pairs(lastGenModels) do
+            if not current[model] and model and model.Parent then hideHL(model) end
+        end
+        for part in pairs(lastGenParts) do
+            if not currentParts[part] and part and part.Parent then hideESP(part) end
+        end
+        lastGenModels = current
+        lastGenParts  = currentParts
+    else
+        -- ESP off / no role → hide semua
+        for model in pairs(lastGenModels) do
+            if model and model.Parent then hideHL(model) end
+        end
+        for part in pairs(lastGenParts) do
+            if part and part.Parent then hideESP(part) end
+        end
+        if next(lastGenModels) ~= nil then lastGenModels = {} end
+        if next(lastGenParts)  ~= nil then lastGenParts  = {} end
+    end
+
+    -- ── Pallet ESP (cyan label + chams) ─────────────────────
+    if CFG.espEnabled and CFG.espPalletEnabled and _H.getPalletParts then
+        local currentP, currentParts = {}, {}
+        for _, part in ipairs(_H.getPalletParts()) do
+            if part and part.Parent then
+                local dist  = getDistance(part.Position)
+                showESP(part, Color3.fromRGB(120, 220, 255), "Pallet\n[" .. dist .. "m]")
+                currentParts[part] = true
+                local model = part:FindFirstAncestorWhichIsA("Model")
+                if model then
+                    showHL(model, Color3.fromRGB(120, 200, 255), Color3.fromRGB(60, 160, 230))
+                    currentP[model] = true
+                end
+            end
+        end
+        for m in pairs(lastPalletModels or {}) do
+            if not currentP[m] and m and m.Parent then hideHL(m) end
+        end
+        for p in pairs(lastPalletParts or {}) do
+            if not currentParts[p] and p and p.Parent then hideESP(p) end
+        end
+        lastPalletModels = currentP
+        lastPalletParts  = currentParts
+    else
+        for m in pairs(lastPalletModels or {}) do
+            if m and m.Parent then hideHL(m) end
+        end
+        for p in pairs(lastPalletParts or {}) do
+            if p and p.Parent then hideESP(p) end
+        end
+        lastPalletModels = {}
+        lastPalletParts  = {}
+    end
+
+    -- ── Speedhack ────────────────────────────────────────────
+    -- Tidak di-set setiap frame; pakai signal-based di STEP 6.6 di bawah.
+end)
+
+-- ============================================================
+--  STEP 6.4: SPEEDHACK (signal-based, hindari set per frame)
+-- ============================================================
+local speedConn = nil
+local function applySpeed()
+    local char = LP.Character
+    if not char then return end
+    local hum = char:FindFirstChild("Humanoid")
+    if not hum then return end
+    if CFG.speedEnabled then
+        if hum.WalkSpeed ~= CFG.speedValue then
+            hum.WalkSpeed = CFG.speedValue
+        end
+    end
+end
+-- Trigger applySpeed saat WalkSpeed di-override game/lain
+local function bindSpeedSignal()
+    if speedConn then speedConn:Disconnect() end
+    local char = LP.Character
+    if not char then return end
+    local hum = char:FindFirstChild("Humanoid")
+    if not hum then return end
+    speedConn = hum:GetPropertyChangedSignal("WalkSpeed"):Connect(applySpeed)
+    applySpeed()
+end
+LP.CharacterAdded:Connect(function()
+    task.wait(0.2)
+    bindSpeedSignal()
+end)
+if LP.Character then bindSpeedSignal() end
+
+-- ============================================================
+--  STEP 6.45: GOD MODE (signal-based health reset)
+--  Saat Humanoid.HealthChanged drops below max → instant set ke MaxHealth.
+--  Plus: set MaxHealth ke huge supaya damage instant ga bisa kill.
+-- ============================================================
+local gmConn = nil
+local function bindGodMode()
+    if gmConn then gmConn:Disconnect() gmConn = nil end
+    local char = LP.Character
+    if not char then return end
+    local hum = char:FindFirstChild("Humanoid")
+    if not hum then return end
+    gmConn = hum.HealthChanged:Connect(function(newHealth)
+        if not CFG.godModeEnabled then return end
+        if newHealth < hum.MaxHealth then
+            pcall(function() hum.Health = hum.MaxHealth end)
+        end
+    end)
+    -- Set MaxHealth tinggi saat aktif (game biasanya tidak override property ini)
+    if CFG.godModeEnabled then
+        pcall(function() hum.MaxHealth = 1e9; hum.Health = hum.MaxHealth end)
+    end
+end
+LP.CharacterAdded:Connect(function()
+    task.wait(0.2)
+    bindGodMode()
+end)
+if LP.Character then bindGodMode() end
+
+-- Polling backup tiap 0.05s — jaga-jaga signal kebypass
+task.spawn(function()
+    while true do
+        task.wait(0.05)
+        if not CFG.godModeEnabled then continue end
+        local c = LP.Character
+        if not c then continue end
+        local hum = c:FindFirstChild("Humanoid")
+        if hum and hum.Health > 0 and hum.Health < hum.MaxHealth then
+            pcall(function() hum.Health = hum.MaxHealth end)
+        end
+    end
+end)
+
+-- ============================================================
+--  STEP 6.5: FLY / NOCLIP / INF JUMP
+-- ============================================================
+local flyBV, flyBG  -- BodyVelocity & BodyGyro untuk fly
+
+local function attachFlyObjects()
+    local char = LP.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if not flyBV or not flyBV.Parent then
+        flyBV = Instance.new("BodyVelocity")
+        flyBV.Name     = "_VD_FlyBV"
+        flyBV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        flyBV.Velocity = Vector3.zero
+        flyBV.Parent   = hrp
+    end
+    if not flyBG or not flyBG.Parent then
+        flyBG = Instance.new("BodyGyro")
+        flyBG.Name      = "_VD_FlyBG"
+        flyBG.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        flyBG.P         = 9e4
+        flyBG.D         = 1000
+        flyBG.CFrame    = hrp.CFrame
+        flyBG.Parent    = hrp
+    end
+end
+
+local function removeFlyObjects()
+    if flyBV then flyBV:Destroy() flyBV = nil end
+    if flyBG then flyBG:Destroy() flyBG = nil end
+end
+
+-- Noclip parts cache (avoid GetDescendants every frame)
+local noclipParts = {}
+local noclipConn  = nil
+
+local function rebuildNoclipCache()
+    noclipParts = {}
+    local char = LP.Character
+    if not char then return end
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            table.insert(noclipParts, part)
+        end
+    end
+    if noclipConn then noclipConn:Disconnect() end
+    noclipConn = char.DescendantAdded:Connect(function(d)
+        if d:IsA("BasePart") then
+            table.insert(noclipParts, d)
+        end
+    end)
+end
+
+LP.CharacterAdded:Connect(function()
+    task.wait(0.2)
+    rebuildNoclipCache()
+end)
+if LP.Character then rebuildNoclipCache() end
+
+-- Loop Fly + Noclip
+RunService.Stepped:Connect(function()
+    local char = LP.Character
+    if not char then return end
+
+    -- Noclip (gunakan cache, bukan GetDescendants)
+    if CFG.noclipEnabled then
+        for i = #noclipParts, 1, -1 do
+            local part = noclipParts[i]
+            if part and part.Parent then
+                if part.CanCollide then part.CanCollide = false end
+            else
+                table.remove(noclipParts, i)
+            end
+        end
+    end
+
+    -- Fly
+    if CFG.flyEnabled and flyBV and flyBG then
+        local cam = workspace.CurrentCamera
+        local dir = Vector3.zero
+        if UIS:IsKeyDown(Enum.KeyCode.W)           then dir += cam.CFrame.LookVector  end
+        if UIS:IsKeyDown(Enum.KeyCode.S)           then dir -= cam.CFrame.LookVector  end
+        if UIS:IsKeyDown(Enum.KeyCode.A)           then dir -= cam.CFrame.RightVector end
+        if UIS:IsKeyDown(Enum.KeyCode.D)           then dir += cam.CFrame.RightVector end
+        if UIS:IsKeyDown(Enum.KeyCode.Space)       then dir += Vector3.new(0, 1, 0)   end
+        if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Vector3.new(0, 1, 0)   end
+
+        local speed = CFG.speedValue * CFG.flySpeedMul
+        flyBV.Velocity = dir.Magnitude > 0 and dir.Unit * speed or Vector3.zero
+        flyBG.CFrame   = cam.CFrame
+    end
+end)
+
+-- Re-attach fly objects saat respawn
+LP.CharacterAdded:Connect(function()
+    task.wait(0.3)
+    if CFG.flyEnabled then attachFlyObjects() end
+end)
+
+-- ── Fullbright ──────────────────────────────────────────────
+local Lighting = game:GetService("Lighting")
+local fbBackup = nil  -- snapshot setting Lighting sebelum fullbright
+local fbDisabledFX = {}  -- list FX yg di-disable supaya bisa di-restore
+
+local fbAtmosphereBackup = {}  -- simpan nilai Density/Haze/Glare per Atmosphere
+
+local function applyFullbright()
+    -- Simpan dulu nilai original Lighting
+    fbBackup = {
+        Brightness     = Lighting.Brightness,
+        ClockTime      = Lighting.ClockTime,
+        FogEnd         = Lighting.FogEnd,
+        FogStart       = Lighting.FogStart,
+        GlobalShadows  = Lighting.GlobalShadows,
+        Ambient        = Lighting.Ambient,
+        OutdoorAmbient = Lighting.OutdoorAmbient,
+    }
+    Lighting.Brightness     = 2
+    Lighting.ClockTime      = 14
+    Lighting.FogEnd         = 1e6
+    Lighting.FogStart       = 1e6
+    Lighting.GlobalShadows  = false
+    Lighting.Ambient        = Color3.fromRGB(178, 178, 178)
+    Lighting.OutdoorAmbient = Color3.fromRGB(178, 178, 178)
+
+    -- Disable PostEffect (Bloom, ColorCorrection, dll punya Enabled)
+    fbDisabledFX = {}
+    fbAtmosphereBackup = {}
+    for _, fx in ipairs(Lighting:GetChildren()) do
+        if fx:IsA("PostEffect") then
+            if fx.Enabled then
+                fx.Enabled = false
+                table.insert(fbDisabledFX, fx)
+            end
+        elseif fx:IsA("Atmosphere") then
+            -- Atmosphere ga punya Enabled — set Density/Haze/Glare ke 0
+            table.insert(fbAtmosphereBackup, {
+                obj     = fx,
+                Density = fx.Density,
+                Haze    = fx.Haze,
+                Glare   = fx.Glare,
+            })
+            fx.Density = 0
+            fx.Haze    = 0
+            fx.Glare   = 0
+        end
+    end
+end
+
+local function restoreFullbright()
+    if not fbBackup then return end
+    for k, v in pairs(fbBackup) do
+        Lighting[k] = v
+    end
+    for _, fx in ipairs(fbDisabledFX) do
+        if fx and fx.Parent then fx.Enabled = true end
+    end
+    for _, atm in ipairs(fbAtmosphereBackup) do
+        if atm.obj and atm.obj.Parent then
+            atm.obj.Density = atm.Density
+            atm.obj.Haze    = atm.Haze
+            atm.obj.Glare   = atm.Glare
+        end
+    end
+    fbBackup = nil
+    fbDisabledFX = {}
+    fbAtmosphereBackup = {}
+end
+
+-- ── Auto Repair ─────────────────────────────────────────────
+-- Pas deket generator, otomatis hold left mouse button.
+-- Skill check tetap harus di-pencet manual (atau missed, tergantung pilihan lu).
+local VIM = game:GetService("VirtualInputManager")
+local arHolding = false  -- state: lagi nge-hold mouse atau ga
+
+local function arGetNearestGen()
+    local char = LP.Character
+    if not char then return nil, math.huge end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil, math.huge end
+
+    local nearest, dist = nil, math.huge
+    for _, gen in ipairs(getGenerators()) do
+        if gen and gen.Parent then
+            local d = (gen.Position - hrp.Position).Magnitude
+            if d < dist then
+                nearest = gen
+                dist    = d
+            end
+        end
+    end
+    return nearest, dist
+end
+
+-- Pakai mouse1press/mouse1release (executor global) — paling reliable.
+-- Fallback ke VIM SendMouseButtonEvent kalau executor ga expose global ini.
+local _mouse1press   = rawget(getfenv(), "mouse1press")   or mouse1press
+local _mouse1release = rawget(getfenv(), "mouse1release") or mouse1release
+
+local function rawPress()
+    if _mouse1press then
+        pcall(_mouse1press)
+    else
+        pcall(function() VIM:SendMouseButtonEvent(0, 0, 0, true, game, 1) end)
+    end
+end
+
+local function rawRelease()
+    if _mouse1release then
+        pcall(_mouse1release)
+    else
+        pcall(function() VIM:SendMouseButtonEvent(0, 0, 0, false, game, 1) end)
+    end
+end
+
+-- Setiap arPress selalu kirim release dulu → wait → press.
+-- Ini replicate behavior toggle OFF→ON yang user laporkan work.
+-- Tanpa release dulu, game tidak detect DOWN edge (mouse state stuck).
+local function arPress()
+    if arHolding then return end
+    rawRelease()        -- clear stuck state
+    task.wait(0.06)     -- gap supaya game detect release dulu
+    arHolding = true
+    rawPress()
+end
+
+local function arRelease()
+    if not arHolding then return end
+    arHolding = false
+    rawRelease()
+end
+
+-- Track generator yang lagi di-press supaya bisa re-arm saat pindah gen
+local arCurrentGen = nil
+
+-- Cek jarak ke gen tertentu (untuk hysteresis: kalau gen lama masih dalam
+-- range, jangan switch walau ada gen lain yang slightly lebih dekat)
+local function arDistToGen(gen)
+    if not gen or not gen.Parent then return math.huge end
+    local char = LP.Character
+    if not char then return math.huge end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return math.huge end
+    return (gen.Position - hrp.Position).Magnitude
+end
+
+-- Detect WASD held → user mau gerak → batalin auto repair.
+-- Space TIDAK termasuk supaya skill check (manual space) ga ganggu auto repair.
+local function arIsMoving()
+    return UIS:IsKeyDown(Enum.KeyCode.W)
+        or UIS:IsKeyDown(Enum.KeyCode.A)
+        or UIS:IsKeyDown(Enum.KeyCode.S)
+        or UIS:IsKeyDown(Enum.KeyCode.D)
+end
+
+task.spawn(function()
+    while true do
+        task.wait(CFG.autoRepairTick)
+
+        if not CFG.autoRepairEnabled then
+            if arHolding then arRelease() end
+            arCurrentGen = nil
+            continue
+        end
+
+        -- User pencet WASD → release, skip. Begitu user diam lagi & masih
+        -- in range gen, loop berikutnya bakal re-engage otomatis.
+        if arIsMoving() then
+            if arHolding then arRelease() end
+            arCurrentGen = nil
+            continue
+        end
+
+        -- Hysteresis: kalau lagi hold gen X dan masih dalam range, stick ke X
+        -- (jangan flip ke gen lain yang slightly lebih dekat karena player gerak)
+        if arCurrentGen and arHolding then
+            local d = arDistToGen(arCurrentGen)
+            if d <= CFG.autoRepairRange then
+                -- Masih nemplok di gen yang sama → biarin hold, no-op
+                continue
+            end
+            -- Gen lama out of range → release, lanjut cari gen baru
+            arRelease()
+            arCurrentGen = nil
+        end
+
+        -- Cari gen terdekat
+        local gen, dist = arGetNearestGen()
+
+        if not gen or dist > CFG.autoRepairRange then
+            -- Tidak ada gen dalam range
+            if arHolding then arRelease() end
+            arCurrentGen = nil
+        else
+            -- Masuk range gen baru → press sekali saja (no re-arm cycle)
+            if not arHolding then
+                arPress()
+            end
+            arCurrentGen = gen
+        end
+    end
+end)
+
+-- Safety: release mouse pas respawn / character ganti
+LP.CharacterAdded:Connect(function()
+    arHolding    = false
+    arCurrentGen = nil
+end)
+
+-- ── Auto Escape ────────────────────────────────────────────
+-- Pas Survivor deket gen, kalau killer mendekat (< escapeDistance studs)
+-- → TP ke generator AMAN: terjauh dari killer, bukan gen yang lagi kita repair,
+--   dan minimal SAFE_DIST dari posisi killer.
+local lastEscape = 0
+
+local function isKillerPlayer(p)
+    if not p.Team then return false end
+    local tn = p.Team.Name
+    return tn == CFG.teamKiller or tn:lower():find("killer")
+end
+
+local function findNearestKiller(myPos)
+    local best, bestD = nil, math.huge
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p == LP then continue end
+        if not isKillerPlayer(p) then continue end
+        local c = p.Character
+        if not c then continue end
+        local hrp = c:FindFirstChild("HumanoidRootPart")
+        if not hrp then continue end
+        local d = (hrp.Position - myPos).Magnitude
+        if d < bestD then bestD = d; best = p end
+    end
+    return best, bestD
+end
+
+-- Cari generator paling aman: terjauh dari killer + bukan gen yg lagi kita repair
+local function findSafestGenerator(killerPos, currentGen)
+    local best, bestD = nil, -1
+    for _, part in ipairs(getGenerators()) do
+        if part ~= currentGen then
+            local d = (part.Position - killerPos).Magnitude
+            if d > bestD then bestD = d; best = part end
+        end
+    end
+    -- Fallback: kalau cuma ada 1 gen di map, terpaksa pakai itu
+    if not best then
+        for _, part in ipairs(getGenerators()) do
+            local d = (part.Position - killerPos).Magnitude
+            if d > bestD then bestD = d; best = part end
+        end
+    end
+    return best, bestD
+end
+
+task.spawn(function()
+    while true do
+        task.wait(CFG.escapeTick)
+        if not CFG.autoEscapeEnabled then continue end
+        -- NO autoRepair requirement — proxy "lagi repair" = deket generator (manual atau auto)
+        if getRole() ~= "Survivor" then continue end
+
+        local now = tick()
+        if now - lastEscape < CFG.escapeCooldown then continue end
+
+        local char = LP.Character
+        if not char then continue end
+        local myRoot = char:FindFirstChild("HumanoidRootPart")
+        if not myRoot then continue end
+
+        -- Cek lagi deket gen (proxy aktif repair) + simpan gen yang lagi direpair
+        local currentGen, genDist = arGetNearestGen()
+        if genDist > CFG.autoRepairRange then continue end
+
+        -- Cari killer terdekat
+        local killer, kDist = findNearestKiller(myRoot.Position)
+        if not killer or kDist > CFG.escapeDistance then continue end
+
+        local killerPos = killer.Character.HumanoidRootPart.Position
+
+        -- TP ke generator paling aman dari killer (skip gen yang sekarang direpair)
+        local gen, safeDist = findSafestGenerator(killerPos, currentGen)
+        if gen and safeDist > CFG.escapeDistance then
+            -- Release mouse dulu biar ga nge-interact pas spawn
+            arRelease()
+            myRoot.CFrame = CFrame.new(gen.Position + Vector3.new(0, 5, 0))
+            lastEscape = now
+        end
+    end
+end)
+
+-- ============================================================
+--  STEP 6.7 - 6.11: SURVIVOR HELPERS + AUTO LOOPS
+--  Wrapped in do...end supaya local-nya dilepas setelah block selesai
+--  (hindari "Out of local registers, exceeded limit 200" error).
+--  Forward-declared di file scope: getGenProgress, isPlayerHooked, isPlayerDowned.
+-- ============================================================
+do
+
+-- ── STEP 6.7: GENERATOR PROGRESS DETECTION ─────────────────
+local GEN_PROGRESS_NAMES = {
+    "Progress","Repair","RepairProgress","Percent","Percentage",
+    "Charge","Completion","Value"
+}
+
+local function normalizeProgress(v)
+    if type(v) ~= "number" then return nil end
+    if v < 0 then return 0 end
+    if v <= 1 then return v * 100 end       -- 0-1 → 0-100
+    if v <= 100 then return v end            -- already 0-100
+    return math.min(100, v)                  -- 0-1000?
+end
+
+function _H.getGenProgress(genPart)
+    if not genPart then return nil end
+    local model = genPart:FindFirstAncestorWhichIsA("Model")
+    if not model then return nil end
+
+    -- 1. Coba Attribute
+    for _, name in ipairs(GEN_PROGRESS_NAMES) do
+        local v = model:GetAttribute(name)
+        local n = normalizeProgress(v)
+        if n then return n end
+    end
+
+    -- 2. Coba child ValueObject (direct)
+    for _, name in ipairs(GEN_PROGRESS_NAMES) do
+        local obj = model:FindFirstChild(name)
+        if obj and (obj:IsA("NumberValue") or obj:IsA("IntValue")) then
+            local n = normalizeProgress(obj.Value)
+            if n then return n end
+        end
+    end
+
+    -- 3. Scan descendant (max 50 untuk safety perf) — nama mengandung progress/repair
+    local count = 0
+    for _, d in ipairs(model:GetDescendants()) do
+        count = count + 1
+        if count > 50 then break end
+        if d:IsA("NumberValue") or d:IsA("IntValue") then
+            local ln = d.Name:lower()
+            if ln:find("progress") or ln:find("repair") or ln:find("percent") then
+                local n = normalizeProgress(d.Value)
+                if n then return n end
+            end
+        end
+    end
+
+    return nil
+end
+
+-- ============================================================
+--  STEP 6.8: HOOK DETECTION + HOOKED PLAYER STATE
+-- ============================================================
+local HOOK_NAMES = { "Hook", "MeatHook", "ShackleHook" }
+
+-- Cache semua hook di workspace (refresh 5 detik)
+local hookCache    = {}
+local hookLastScan = 0
+
+local function getHooks()
+    local now = tick()
+    if now - hookLastScan < 5 and #hookCache > 0 then return hookCache end
+    hookLastScan = now
+    hookCache    = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") or obj:IsA("BasePart") then
+            for _, name in ipairs(HOOK_NAMES) do
+                if obj.Name == name or obj.Name:lower():find("hook") then
+                    local part = obj:IsA("BasePart") and obj
+                        or (obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart"))
+                    if part then
+                        table.insert(hookCache, part)
+                    end
+                    break
+                end
+            end
+        end
+    end
+    return hookCache
+end
+
+-- Detect apakah player p sedang ke-hook
+-- Multi-strategy: cek attribute, cek state, cek distance ke hook + animasi
+-- Pallet scanner shared (dipakai ESP loop + killer features)
+local _palletCache, _palletLastScan = {}, 0
+function _H.getPalletParts()
+    local now = tick()
+    if now - _palletLastScan < 5 and #_palletCache > 0 then return _palletCache end
+    _palletLastScan = now
+    _palletCache    = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj.Name:lower():find("pallet") then
+            local part = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+            if part then table.insert(_palletCache, part) end
+        end
+    end
+    return _palletCache
+end
+
+function _H.isPlayerHooked(p)
+    if not p then return false end
+    local c = p.Character
+    if not c then return false end
+
+    -- 1. Attribute pada character/humanoid
+    for _, attrName in ipairs({"Hooked","IsHooked","OnHook","Hang","Hanging"}) do
+        if c:GetAttribute(attrName) == true then return true end
+    end
+    local hum = c:FindFirstChild("Humanoid")
+    if hum then
+        for _, attrName in ipairs({"Hooked","IsHooked","OnHook"}) do
+            if hum:GetAttribute(attrName) == true then return true end
+        end
+        -- 2. Humanoid state (PlatformStanding sering dipakai untuk hook/down)
+        local ok, state = pcall(function() return hum:GetState() end)
+        if ok and state == Enum.HumanoidStateType.PlatformStanding then
+            -- PlatformStanding bisa jadi hook ATAU knockdown. Bedain pakai
+            -- proximity ke hook part.
+            local hrp = c:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                for _, h in ipairs(getHooks()) do
+                    if h and h.Parent and (h.Position - hrp.Position).Magnitude < 4 then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+
+    -- 3. ValueObject child di character
+    for _, name in ipairs({"Hooked","IsHooked","OnHook"}) do
+        local v = c:FindFirstChild(name)
+        if v and v:IsA("BoolValue") and v.Value then return true end
+    end
+
+    return false
+end
+
+-- Detect downed (knockdown, masih bisa diselamatkan tapi ga bisa repair)
+function _H.isPlayerDowned(p)
+    if not p then return false end
+    local c = p.Character
+    if not c then return false end
+    local hum = c:FindFirstChild("Humanoid")
+    if not hum or hum.Health <= 0 then return false end
+
+    -- 1. Attribute (game-specific)
+    for _, attrName in ipairs({"Downed","KnockedDown","Crawling","IsDowned","Dying","Down","Knocked"}) do
+        if c:GetAttribute(attrName) == true then return true end
+        if hum:GetAttribute(attrName) == true then return true end
+    end
+
+    -- 2. Humanoid boolean properties (PlatformStand & Sit sering dipake game custom)
+    if hum.PlatformStand == true then
+        if not _H.isPlayerHooked(p) then return true end
+    end
+    if hum.Sit == true then return true end
+
+    -- 3. State enum
+    local ok, state = pcall(function() return hum:GetState() end)
+    if ok then
+        if state == Enum.HumanoidStateType.FallingDown
+        or state == Enum.HumanoidStateType.Ragdoll then
+            return true
+        end
+        if state == Enum.HumanoidStateType.PlatformStanding then
+            if not _H.isPlayerHooked(p) then return true end
+        end
+    end
+
+    -- 4. WalkSpeed sangat rendah (crawl) — strong indicator
+    if hum.WalkSpeed > 0 and hum.WalkSpeed < 5 then return true end
+
+    -- 5. Animation track names (paling reliable kalau game pake animasi standar)
+    local okA, tracks = pcall(function() return hum:GetPlayingAnimationTracks() end)
+    if okA and tracks then
+        for _, track in ipairs(tracks) do
+            local anim = track.Animation
+            if anim then
+                local n = anim.Name:lower()
+                if n:find("crawl") or n:find("down") or n:find("dying")
+                or n:find("knock") or n:find("inject") or n:find("injure") then
+                    return true
+                end
+            end
+        end
+    end
+
+    -- 6. ValueObject child di character
+    for _, name in ipairs({"Downed","IsDowned","Crawling","Knocked"}) do
+        local v = c:FindFirstChild(name)
+        if v and v:IsA("BoolValue") and v.Value then return true end
+    end
+
+    return false
+end
+
+-- Detect injured (HP < max, masih bisa jalan)
+local function isPlayerInjured(p)
+    if not p then return false end
+    local c = p.Character
+    if not c then return false end
+    local hum = c:FindFirstChild("Humanoid")
+    if not hum or hum.Health <= 0 then return false end
+    return hum.Health < hum.MaxHealth * (CFG.healSelfHpThreshold / 100)
+end
+
+local function getCharRoot(p)
+    local c = p and p.Character
+    return c and c:FindFirstChild("HumanoidRootPart")
+end
+
+-- ============================================================
+--  STEP 6.9: AUTO RESCUE (TP ke teammate hooked + hold mouse)
+-- ============================================================
+local lastRescue          = 0
+local PER_TARGET_COOLDOWN = 15  -- detik, jangan rescue teammate yg sama dlm window ini
+local rescuedAt           = {}  -- [UserId] = tick() saat terakhir di-rescue
+
+task.spawn(function()
+    while true do
+        task.wait(CFG.rescueTick)
+        if not CFG.autoRescueEnabled then continue end
+        if getRole() ~= "Survivor" then continue end
+
+        local now = tick()
+        if now - lastRescue < CFG.rescueCooldown then continue end
+
+        local myRoot = getCharRoot(LP)
+        if not myRoot then continue end
+
+        -- Cari teammate hooked terdekat — skip yg baru aja kita rescue
+        local target, targetRoot, targetDist = nil, nil, math.huge
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p == LP then continue end
+            if isKillerPlayer(p) then continue end
+            if not _H.isPlayerHooked(p) then continue end
+            -- Per-target cooldown: skip kalau baru aja di-rescue
+            -- (mencegah false-positive isPlayerHooked saat animasi unhook)
+            local last = rescuedAt[p.UserId]
+            if last and (now - last) < PER_TARGET_COOLDOWN then continue end
+            local r = getCharRoot(p)
+            if r then
+                local d = (r.Position - myRoot.Position).Magnitude
+                if d < targetDist then
+                    target, targetRoot, targetDist = p, r, d
+                end
+            end
+        end
+
+        if not target then continue end
+
+        -- Pastikan auto repair release dulu (jangan tahan mouse pas TP)
+        if arHolding then arRelease() end
+
+        -- TP ke depan teammate (offset sedikit biar ga overlap)
+        myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 3)
+
+        -- Hold mouse buat trigger unhook interaction
+        task.wait(0.2)
+        rawRelease(); task.wait(0.05); rawPress()
+        task.wait(1.2)  -- durasi unhook biasanya ~1s
+        rawRelease()
+
+        rescuedAt[target.UserId] = tick()
+        lastRescue = now
+    end
+end)
+
+-- ============================================================
+--  STEP 6.10: AUTO HEAL (self + team injured/downed)
+-- ============================================================
+local lastHeal = 0
+
+task.spawn(function()
+    while true do
+        task.wait(CFG.healTick)
+        if not CFG.autoHealEnabled then continue end
+        if getRole() ~= "Survivor" then continue end
+
+        -- Cooldown global supaya ga spam terus
+        local now = tick()
+        if now - lastHeal < 0.5 then continue end
+
+        local myRoot = getCharRoot(LP)
+        if not myRoot then continue end
+
+        -- Priority: self injured > teammate downed > teammate injured
+        local target, targetRoot = nil, nil
+
+        -- 1. Self injured?
+        if isPlayerInjured(LP) and not _H.isPlayerHooked(LP) then
+            target, targetRoot = LP, myRoot
+        end
+
+        -- 2. Teammate downed/injured terdekat
+        if not target then
+            local bestDist = CFG.healRange * 4  -- mau TP juga, jadi range lebih luas
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p == LP then continue end
+                if isKillerPlayer(p) then continue end
+                if _H.isPlayerHooked(p) then continue end  -- hook beda handler
+                local needs = _H.isPlayerDowned(p) or isPlayerInjured(p)
+                if not needs then continue end
+                local r = getCharRoot(p)
+                if r then
+                    local d = (r.Position - myRoot.Position).Magnitude
+                    if d < bestDist then
+                        bestDist = d
+                        target, targetRoot = p, r
+                    end
+                end
+            end
+        end
+
+        if not target then continue end
+
+        -- Kalau bukan diri sendiri & jauh, TP dekati
+        if target ~= LP then
+            local d = (targetRoot.Position - myRoot.Position).Magnitude
+            if d > CFG.healRange then
+                if arHolding then arRelease() end
+                myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 2.5)
+                task.wait(0.15)
+            end
+        end
+
+        -- Hold mouse buat trigger heal interaction
+        rawRelease(); task.wait(0.05); rawPress()
+        task.wait(1.5)  -- durasi heal
+        rawRelease()
+
+        lastHeal = now
+    end
+end)
+
+-- ============================================================
+--  STEP 6.11: AUTO UNHOOK SELF
+--  Saat karakter sendiri di-hook, auto interact + spam space (struggle).
+-- ============================================================
+task.spawn(function()
+    while true do
+        task.wait(CFG.unhookTick)
+        if not CFG.autoUnhookEnabled then continue end
+
+        if _H.isPlayerHooked(LP) then
+            -- Spam space buat struggle/skill check
+            pcall(function()
+                VIM:SendKeyEvent(true,  Enum.KeyCode.Space, false, game)
+                task.wait(0.04)
+                VIM:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+            end)
+            -- Hold mouse juga untuk self-unhook attempt (kalau game pakai mouse)
+            if not arHolding then
+                rawPress()
+                arHolding = true
+            end
+        else
+            -- Bukan ke-hook, pastikan release
+            if arHolding and not CFG.autoRepairEnabled then
+                arRelease()
+            end
+        end
+    end
+end)
+
+end  -- ◀ END Survivor helpers + auto loops do-block
+
+-- ============================================================
+--  STEP 6.12 - 6.18: KILLER FEATURES (wrapped do-block)
+--  Auto-Attack, Auto-Pickup, Auto-Hook, Anti-stuns, Auto-Break
+-- ============================================================
+do
+
+-- ── Helpers ────────────────────────────────────────────────
+local function getCharRoot(p)
+    local c = p and p.Character
+    return c and c:FindFirstChild("HumanoidRootPart")
+end
+
+-- SPACE key helper (untuk pickup, hook, break pallet di Violence District)
+-- Multi-backend: keypress/keyrelease (executor global) → VIM:SendKeyEvent
+local _keypress   = rawget(getfenv(), "keypress")   or keypress
+local _keyrelease = rawget(getfenv(), "keyrelease") or keyrelease
+
+local function spaceDown()
+    if _keypress then
+        pcall(_keypress, 0x20)  -- VK_SPACE
+    end
+    pcall(function() VIM:SendKeyEvent(true, Enum.KeyCode.Space, false, game) end)
+end
+
+local function spaceUp()
+    if _keyrelease then
+        pcall(_keyrelease, 0x20)
+    end
+    pcall(function() VIM:SendKeyEvent(false, Enum.KeyCode.Space, false, game) end)
+end
+
+-- Hold space untuk durasi tertentu (untuk interaksi hold-to-action)
+local function holdSpace(duration)
+    spaceUp(); task.wait(0.04)
+    spaceDown()
+    task.wait(duration or 1.0)
+    spaceUp()
+end
+
+local function isFacing(myRoot, targetPos, threshold)
+    if not myRoot then return false end
+    local toTarget = targetPos - myRoot.Position
+    if toTarget.Magnitude < 0.001 then return true end
+    local myDir = myRoot.CFrame.LookVector
+    return myDir:Dot(toTarget.Unit) >= (threshold or 0.45)
+end
+
+local function isKillerPlayer(p)
+    if not p.Team then return false end
+    local tn = p.Team.Name
+    return tn == CFG.teamKiller or tn:lower():find("killer")
+end
+
+-- Pallet cache (5s refresh)
+local PALLET_NAMES = {"Pallet","DroppedPallet","BrokenPallet"}
+local palletCache, palletLastScan = {}, 0
+local function getPallets()
+    local now = tick()
+    if now - palletLastScan < 5 and #palletCache > 0 then return palletCache end
+    palletLastScan = now
+    palletCache    = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") then
+            local ln = obj.Name:lower()
+            if ln:find("pallet") then
+                local part = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if part then table.insert(palletCache, {model=obj, part=part}) end
+            end
+        end
+    end
+    return palletCache
+end
+
+-- Detect dropped pallet (attribute, name, or just not-broken state)
+local function isPalletDropped(palletData)
+    local m = palletData.model
+    if not m or not m.Parent then return false end
+    -- Attribute checks
+    for _, a in ipairs({"Dropped","IsDropped","Down","Active"}) do
+        local v = m:GetAttribute(a)
+        if v == true then return true end
+    end
+    -- Name-based: "DroppedPallet" or contains "drop"
+    local n = m.Name:lower()
+    if n:find("drop") or n:find("down") then return true end
+    -- Orientation heuristic: if part Y rotation tipped (laying flat) it's dropped
+    if palletData.part then
+        local up = palletData.part.CFrame.UpVector
+        if math.abs(up.Y) < 0.5 then return true end  -- tipped over
+    end
+    return false
+end
+
+-- Detect kalau LP lagi nge-carry survivor (untuk Auto-Hook)
+local function isCarrying()
+    local c = LP.Character
+    if not c then return false end
+    for _, a in ipairs({"Carrying","IsCarrying","HoldingSurvivor"}) do
+        if c:GetAttribute(a) == true then return true end
+    end
+    local hum = c:FindFirstChild("Humanoid")
+    if hum then
+        for _, a in ipairs({"Carrying","IsCarrying"}) do
+            if hum:GetAttribute(a) == true then return true end
+        end
+    end
+    -- Fallback: cek apakah ada survivor character ke-attach ke kita
+    -- (cek Motor6D ke survivor) — skip dulu, heuristic Attribute aja
+    return false
+end
+
+-- ── STEP 6.12: AUTO-ATTACK (M1) ─────────────────────────────
+local lastAttack = 0
+task.spawn(function()
+    while true do
+        task.wait(CFG.autoAttackTick)
+        if not CFG.autoAttackEnabled then continue end
+        if getRole() ~= "Killer" then continue end
+
+        local now = tick()
+        if now - lastAttack < 0.5 then continue end  -- attack cooldown
+
+        local myRoot = getCharRoot(LP)
+        if not myRoot then continue end
+
+        -- Cari survivor terdekat dalam range + facing (skip downed — buang waktu)
+        local target, targetDist = nil, math.huge
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p == LP then continue end
+            if isKillerPlayer(p) then continue end
+            local r = getCharRoot(p)
+            if not r then continue end
+            local c = p.Character
+            local hum = c and c:FindFirstChild("Humanoid")
+            if not hum or hum.Health <= 0 then continue end
+            -- Skip yang sudah down — fokus chase yang masih berdiri
+            if _H.isPlayerDowned and _H.isPlayerDowned(p) then continue end
+            -- Skip yang sudah hooked
+            if _H.isPlayerHooked and _H.isPlayerHooked(p) then continue end
+            local d = (r.Position - myRoot.Position).Magnitude
+            if d <= CFG.autoAttackRange and isFacing(myRoot, r.Position, CFG.autoAttackFOV) then
+                if d < targetDist then
+                    target, targetDist = p, d
+                end
+            end
+        end
+
+        if target then
+            -- Random jitter buat hindari pattern detection
+            task.wait(math.random(30, 90) / 1000)
+            rawRelease(); task.wait(0.04); rawPress()
+            task.wait(0.18)
+            rawRelease()
+            lastAttack = now
+        end
+    end
+end)
+
+-- ── STEP 6.13: AUTO-PICKUP (downed survivor) ────────────────
+local lastPickup = 0
+task.spawn(function()
+    while true do
+        task.wait(CFG.pickupTick)
+        if not CFG.autoPickupEnabled then continue end
+        if getRole() ~= "Killer" then continue end
+        if isCarrying() then continue end  -- udah carrying
+
+        local now = tick()
+        if now - lastPickup < 1.5 then continue end
+
+        local myRoot = getCharRoot(LP)
+        if not myRoot then continue end
+
+        -- Cari downed survivor terdekat
+        local target, targetRoot, bestDist = nil, nil, math.huge
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p == LP or isKillerPlayer(p) then continue end
+            if not _H.isPlayerDowned(p) then continue end
+            local r = getCharRoot(p)
+            if r then
+                local d = (r.Position - myRoot.Position).Magnitude
+                if d < bestDist and d <= CFG.pickupRange * 3 then
+                    target, targetRoot, bestDist = p, r, d
+                end
+            end
+        end
+
+        if target then
+            -- TP dekati kalau jauh
+            if bestDist > CFG.pickupRange then
+                myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 2)
+                task.wait(0.2)
+            end
+            -- Pickup di Violence District = hold SPACE
+            holdSpace(1.2)
+            lastPickup = now
+        end
+    end
+end)
+
+-- ── STEP 6.14: AUTO-HOOK (when carrying, go to nearest hook) ─
+local lastHook = 0
+task.spawn(function()
+    while true do
+        task.wait(CFG.hookTick)
+        if not CFG.autoHookEnabled then continue end
+        if getRole() ~= "Killer" then continue end
+        if not isCarrying() then continue end
+
+        local now = tick()
+        if now - lastHook < 2 then continue end
+
+        local myRoot = getCharRoot(LP)
+        if not myRoot then continue end
+
+        -- Build list semua hook + cek occupancy
+        -- Hook dianggap "occupied" kalau ada survivor hooked dalam 4 studs.
+        local hookedSurvivorPositions = {}
+        for _, sp in ipairs(Players:GetPlayers()) do
+            if sp ~= LP and not isKillerPlayer(sp)
+              and _H.isPlayerHooked and _H.isPlayerHooked(sp) then
+                local sr = getCharRoot(sp)
+                if sr then table.insert(hookedSurvivorPositions, sr.Position) end
+            end
+        end
+
+        local function isHookOccupied(hookPos)
+            for _, pos in ipairs(hookedSurvivorPositions) do
+                if (pos - hookPos).Magnitude < 4 then return true end
+            end
+            return false
+        end
+
+        -- Cari hook terdekat yang EMPTY
+        local bestHook, bestDist = nil, math.huge
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") or obj:IsA("BasePart") then
+                local ln = obj.Name:lower()
+                if ln:find("hook") and not ln:find("crook") then
+                    local part = obj:IsA("BasePart") and obj
+                        or (obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart"))
+                    if part and not isHookOccupied(part.Position) then
+                        local d = (part.Position - myRoot.Position).Magnitude
+                        if d < bestDist then
+                            bestHook, bestDist = part, d
+                        end
+                    end
+                end
+            end
+        end
+
+        if bestHook then
+            -- TP ke depan hook
+            myRoot.CFrame = CFrame.new(bestHook.Position + Vector3.new(0, 2, 0), bestHook.Position)
+            task.wait(0.25)
+            -- Hook di Violence District = hold SPACE
+            holdSpace(1.4)
+            lastHook = now
+        end
+    end
+end)
+
+-- ── STEP 6.15: ANTI-STUN (signal-based, covers pallet/vault/shoot)
+-- Reaksi <5ms karena pakai signal, bukan polling. Server-authoritative
+-- masih bisa re-apply, tapi window stun-nya jadi minimal.
+local function antiStunActive()
+    return CFG.antiPalletStunEnabled
+        or CFG.antiVaultStunEnabled
+        or CFG.antiShootStunEnabled
+end
+
+local stunConns = {}
+local function clearStunConns()
+    for _, c in ipairs(stunConns) do pcall(function() c:Disconnect() end) end
+    stunConns = {}
+end
+
+local function targetWalkSpeed()
+    return CFG.speedEnabled and CFG.speedValue or 16
+end
+
+local function fixStunState(hum)
+    if not hum then return end
+    if hum.PlatformStand then pcall(function() hum.PlatformStand = false end) end
+    if hum.Sit then pcall(function() hum.Sit = false end) end
+    if hum.WalkSpeed > 0 and hum.WalkSpeed < 12 then
+        pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
+    end
+end
+
+local function attachAntiStun(char)
+    clearStunConns()
+    if not char then return end
+    local hum = char:FindFirstChild("Humanoid")
+    if not hum then return end
+
+    -- WalkSpeed dropped → restore instant
+    table.insert(stunConns, hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+        if not antiStunActive() or getRole() ~= "Killer" then return end
+        if hum.WalkSpeed > 0 and hum.WalkSpeed < 12 then
+            pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
+        end
+    end))
+
+    -- PlatformStand triggered → reset
+    table.insert(stunConns, hum:GetPropertyChangedSignal("PlatformStand"):Connect(function()
+        if not antiStunActive() or getRole() ~= "Killer" then return end
+        if hum.PlatformStand then
+            pcall(function() hum.PlatformStand = false end)
+        end
+    end))
+
+    -- Sit triggered → reset
+    table.insert(stunConns, hum:GetPropertyChangedSignal("Sit"):Connect(function()
+        if not antiStunActive() or getRole() ~= "Killer" then return end
+        if hum.Sit then pcall(function() hum.Sit = false end) end
+    end))
+
+    -- State changed ke stun-like state → force GettingUp
+    table.insert(stunConns, hum.StateChanged:Connect(function(_, newState)
+        if not antiStunActive() or getRole() ~= "Killer" then return end
+        if newState == Enum.HumanoidStateType.PlatformStanding
+        or newState == Enum.HumanoidStateType.Physics
+        or newState == Enum.HumanoidStateType.FallingDown then
+            pcall(function() hum:ChangeState(Enum.HumanoidStateType.GettingUp) end)
+        end
+    end))
+
+    -- Stop stun animations as they play
+    table.insert(stunConns, hum.AnimationPlayed:Connect(function(track)
+        if not antiStunActive() or getRole() ~= "Killer" then return end
+        if track.Animation then
+            local n = track.Animation.Name:lower()
+            if n:find("stun") or n:find("flash") or n:find("pallet")
+            or n:find("shoot") or n:find("hit") or n:find("vault")
+            or n:find("blind") or n:find("daze") then
+                pcall(function() track:Stop(0) end)
+            end
+        end
+    end))
+
+    -- Reset attributes (untuk game yang pake Attribute toggle)
+    table.insert(stunConns, char.AttributeChanged:Connect(function(name)
+        if not antiStunActive() or getRole() ~= "Killer" then return end
+        local ln = name:lower()
+        if ln:find("stun") or ln:find("flash") or ln:find("blind") or ln:find("daze") then
+            if char:GetAttribute(name) == true then
+                pcall(function() char:SetAttribute(name, false) end)
+            end
+        end
+    end))
+end
+
+LP.CharacterAdded:Connect(function(c) task.wait(0.2); attachAntiStun(c) end)
+if LP.Character then attachAntiStun(LP.Character) end
+
+-- Backup polling tiap 0.05s — jaga-jaga signal ke-bypass
+task.spawn(function()
+    while true do
+        task.wait(CFG.antiStunTick)
+        if not antiStunActive() then continue end
+        if getRole() ~= "Killer" then continue end
+        local c = LP.Character
+        if not c then continue end
+        local hum = c:FindFirstChild("Humanoid")
+        if hum then fixStunState(hum) end
+    end
+end)
+
+-- ── STEP 6.16: ANTI-FLASHLIGHT-BLIND (signal-based) ────────
+-- Watch ChildAdded di Lighting/Camera/Character → instant disable + destroy
+-- ColorCorrection/Blur/Bloom yang muncul sebagai blind effect.
+local Lighting = game:GetService("Lighting")
+
+local function killBlindEffect(ef)
+    if not CFG.antiFlashlightEnabled then return end
+    if getRole() ~= "Killer" then return end
+    if ef:IsA("ColorCorrectionEffect") or ef:IsA("BlurEffect") or ef:IsA("BloomEffect") then
+        pcall(function() ef.Enabled = false end)
+        -- Destroy supaya server ga reapply
+        pcall(function() ef:Destroy() end)
+    end
+end
+
+local function watchContainer(container)
+    if not container then return end
+    container.ChildAdded:Connect(function(c) killBlindEffect(c) end)
+    -- Scan existing
+    for _, c in ipairs(container:GetChildren()) do killBlindEffect(c) end
+end
+
+watchContainer(Lighting)
+if workspace.CurrentCamera then watchContainer(workspace.CurrentCamera) end
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    watchContainer(workspace.CurrentCamera)
+end)
+LP.CharacterAdded:Connect(function(c) task.wait(0.2); watchContainer(c) end)
+if LP.Character then watchContainer(LP.Character) end
+
+-- Backup polling at 0.1s — kalau effect masuk via cara lain
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if not CFG.antiFlashlightEnabled then continue end
+        if getRole() ~= "Killer" then continue end
+        for _, container in ipairs({Lighting, workspace.CurrentCamera, LP.Character}) do
+            if container then
+                for _, ef in ipairs(container:GetChildren()) do killBlindEffect(ef) end
+            end
+        end
+    end
+end)
+
+-- ── STEP 6.17: AUTO-BREAK PALLET ────────────────────────────
+local lastBreak = 0
+task.spawn(function()
+    while true do
+        task.wait(CFG.breakPalletTick)
+        if not CFG.autoBreakPalletEnabled then continue end
+        if getRole() ~= "Killer" then continue end
+
+        local now = tick()
+        if now - lastBreak < 2.5 then continue end
+
+        local myRoot = getCharRoot(LP)
+        if not myRoot then continue end
+
+        -- Scan pallets dalam range + facing + dropped state
+        for _, palletData in ipairs(getPallets()) do
+            local part = palletData.part
+            if part and part.Parent then
+                local d = (part.Position - myRoot.Position).Magnitude
+                if d <= CFG.breakPalletRange
+                  and isFacing(myRoot, part.Position, 0.55)
+                  and isPalletDropped(palletData) then
+                    -- Break pallet di Violence District = hold SPACE
+                    holdSpace(1.0)
+                    lastBreak = now
+                    break
+                end
+            end
+        end
+    end
+end)
+
+end  -- ◀ END Killer features do-block
+
+-- ── Aimbot ──────────────────────────────────────────────────
+-- Lock kamera ke target body (HumanoidRootPart) dalam FOV pixel radius dari
+-- center screen. Filter target: survivor → killer, killer → survivor.
+-- Instant snap (no smoothing).
+local Camera = workspace.CurrentCamera
+
+local function getTargetRoleByTeam(p)
+    if p.Team then
+        local tn = p.Team.Name
+        if tn == CFG.teamKiller or tn:lower():find("killer") then
+            return "Killer"
+        end
+    end
+    return "Survivor"
+end
+
+RunService.RenderStepped:Connect(function()
+    if not CFG.aimbotEnabled then return end
+    if not Camera then Camera = workspace.CurrentCamera end
+    if not Camera then return end
+
+    local myRole = getRole()
+    if myRole ~= "Survivor" and myRole ~= "Killer" then return end
+
+    local viewportSize = Camera.ViewportSize
+    local screenCenter = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+
+    local bestTarget, bestDist = nil, math.huge
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p == LP then continue end
+        local c = p.Character
+        if not c then continue end
+        local hum = c:FindFirstChild("Humanoid")
+        if not hum or hum.Health <= 0 then continue end
+        local hrp = c:FindFirstChild("HumanoidRootPart")
+        if not hrp then continue end
+
+        -- Filter role
+        local targetRole = getTargetRoleByTeam(p)
+        local valid = (myRole == "Survivor" and targetRole == "Killer")
+                   or (myRole == "Killer"   and targetRole == "Survivor")
+        if not valid then continue end
+
+        -- Project ke screen
+        local screenPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+        if not onScreen then continue end
+
+        local dist = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
+        if dist <= CFG.aimbotFOV and dist < bestDist then
+            bestDist   = dist
+            bestTarget = hrp
+        end
+    end
+
+    if bestTarget then
+        Camera.CFrame = CFrame.new(Camera.CFrame.Position, bestTarget.Position)
+    end
+end)
+
+-- ============================================================
+--  STEP 7: GUI — Artheirs Script Modern Theme
+-- ============================================================
+local TweenService = game:GetService("TweenService")
+
+-- ── Theme palette ────────────────────────────────────────────
+local T = {
+    -- Background layers
+    bgDeep    = Color3.fromRGB(13, 14, 19),
+    bgPanel   = Color3.fromRGB(20, 22, 28),
+    bgHeader  = Color3.fromRGB(26, 28, 36),
+    bgInput   = Color3.fromRGB(24, 26, 33),
+    -- Buttons
+    btnBase   = Color3.fromRGB(30, 33, 41),
+    btnHover  = Color3.fromRGB(42, 46, 58),
+    btnActive = Color3.fromRGB(50, 54, 68),
+    -- Borders
+    borderLo  = Color3.fromRGB(38, 42, 54),
+    borderHi  = Color3.fromRGB(62, 68, 84),
+    -- Text
+    textPri   = Color3.fromRGB(232, 235, 245),
+    textSec   = Color3.fromRGB(150, 156, 172),
+    textDim   = Color3.fromRGB(95, 100, 115),
+    -- Accents
+    accent    = Color3.fromRGB(140, 120, 255),  -- primary purple
+    accentDim = Color3.fromRGB(90, 75, 180),
+    success   = Color3.fromRGB(110, 220, 150),
+    danger    = Color3.fromRGB(255, 105, 110),
+    warning   = Color3.fromRGB(255, 200, 90),
+    info      = Color3.fromRGB(95, 210, 235),
+}
+
+local TWEEN_FAST   = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local TWEEN_NORMAL = TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local TWEEN_SLOW   = TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+
+local function tween(obj, info, props)
+    TweenService:Create(obj, info, props):Play()
+end
+
+-- ── UI Helpers ───────────────────────────────────────────────
+local function corner(p, r)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, r or 6)
+    c.Parent = p
+    return c
+end
+
+local function stroke(p, color, thickness, transparency)
+    local s = Instance.new("UIStroke")
+    s.Color           = color or T.borderLo
+    s.Thickness       = thickness or 1
+    s.Transparency    = transparency or 0
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    s.Parent          = p
+    return s
+end
+
+local function gradient(p, c1, c2, rotation)
+    local g = Instance.new("UIGradient")
+    g.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, c1),
+        ColorSequenceKeypoint.new(1, c2),
+    })
+    g.Rotation = rotation or 90
+    g.Parent = p
+    return g
+end
+
+-- ── ScreenGui ───────────────────────────────────────────────
+local SG = Instance.new("ScreenGui")
+SG.Name           = "ArtheirsScript"
+SG.ResetOnSpawn   = false
+SG.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+SG.IgnoreGuiInset = true
+pcall(function() SG.Parent = game:GetService("CoreGui") end)
+if not SG.Parent or not SG.Parent:IsA("CoreGui") then
+    SG.Parent = LP.PlayerGui
+end
+
+-- ── Main Panel ──────────────────────────────────────────────
+local PANEL_W, PANEL_H = 240, 598  -- height nampung Auto Escape, Aimbot, Aimbot FOV ctrl
+local Panel = Instance.new("Frame")
+Panel.Name             = "Panel"
+Panel.Size             = UDim2.new(0, PANEL_W, 0, PANEL_H)
+Panel.Position         = UDim2.new(0, 16, 0, 44)
+Panel.AnchorPoint      = Vector2.new(0, 0)
+Panel.BackgroundColor3 = T.bgPanel
+Panel.BorderSizePixel  = 0
+Panel.Active           = true
+Panel.Draggable        = true
+Panel.Parent           = SG
+corner(Panel, 12)
+stroke(Panel, T.borderHi, 1, 0.35)
+gradient(Panel,
+    Color3.fromRGB(28, 30, 38),
+    Color3.fromRGB(18, 20, 26),
+    135)
+
+-- Inner glow stroke (double border efek glassy)
+local InnerGlow = Instance.new("Frame")
+InnerGlow.Size = UDim2.new(1, -4, 1, -4)
+InnerGlow.Position = UDim2.new(0, 2, 0, 2)
+InnerGlow.BackgroundTransparency = 1
+InnerGlow.BorderSizePixel = 0
+InnerGlow.Parent = Panel
+corner(InnerGlow, 10)
+stroke(InnerGlow, Color3.fromRGB(70, 78, 100), 1, 0.7)
+
+-- ═══ HEADER ═════════════════════════════════════════════════
+local Header = Instance.new("Frame")
+Header.Size             = UDim2.new(1, 0, 0, 56)
+Header.BackgroundColor3 = T.bgHeader
+Header.BorderSizePixel  = 0
+Header.Parent           = Panel
+corner(Header, 12)
+gradient(Header,
+    Color3.fromRGB(32, 34, 44),
+    Color3.fromRGB(22, 24, 32),
+    90)
+
+-- Cover bottom corners (biar ga rounded bawah)
+local HeaderBot = Instance.new("Frame")
+HeaderBot.Size = UDim2.new(1, 0, 0, 14)
+HeaderBot.Position = UDim2.new(0, 0, 1, -14)
+HeaderBot.BackgroundColor3 = Color3.fromRGB(22, 24, 32)
+HeaderBot.BackgroundTransparency = 0
+HeaderBot.BorderSizePixel = 0
+HeaderBot.ZIndex = 0
+HeaderBot.Parent = Header
+
+-- Divider line bawah header (accent gradient)
+local HDiv = Instance.new("Frame")
+HDiv.Size             = UDim2.new(1, -32, 0, 1)
+HDiv.Position         = UDim2.new(0, 16, 1, 0)
+HDiv.BackgroundColor3 = T.accent
+HDiv.BackgroundTransparency = 0.5
+HDiv.BorderSizePixel  = 0
+HDiv.Parent           = Header
+gradient(HDiv,
+    Color3.fromRGB(140, 120, 255),
+    Color3.fromRGB(95, 210, 235),
+    0)
+
+-- Accent dot (animated pulse)
+local Dot = Instance.new("Frame")
+Dot.Size             = UDim2.new(0, 8, 0, 8)
+Dot.Position         = UDim2.new(0, 16, 0, 14)
+Dot.BackgroundColor3 = T.accent
+Dot.BorderSizePixel  = 0
+Dot.Parent           = Header
+corner(Dot, 4)
+
+local DotGlow = Instance.new("Frame")
+DotGlow.Size             = UDim2.new(0, 16, 0, 16)
+DotGlow.Position         = UDim2.new(0, 12, 0, 10)
+DotGlow.BackgroundColor3 = T.accent
+DotGlow.BackgroundTransparency = 0.5
+DotGlow.BorderSizePixel  = 0
+DotGlow.ZIndex           = Dot.ZIndex - 1
+DotGlow.Parent           = Header
+corner(DotGlow, 8)
+
+-- Pulse animation
+task.spawn(function()
+    while DotGlow and DotGlow.Parent do
+        tween(DotGlow, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+            BackgroundTransparency = 0.9,
+            Size = UDim2.new(0, 22, 0, 22),
+            Position = UDim2.new(0, 9, 0, 7),
+        })
+        break
+    end
+end)
+
+-- Brand
+local Brand = Instance.new("TextLabel")
+Brand.Size             = UDim2.new(1, -90, 0, 18)
+Brand.Position         = UDim2.new(0, 32, 0, 9)
+Brand.BackgroundTransparency = 1
+Brand.Text             = "ARTHEIRS"
+Brand.TextColor3       = T.textPri
+Brand.Font             = Enum.Font.GothamBold
+Brand.TextSize         = 15
+Brand.TextXAlignment   = Enum.TextXAlignment.Left
+Brand.Parent           = Header
+
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Size             = UDim2.new(1, -90, 0, 14)
+Subtitle.Position         = UDim2.new(0, 32, 0, 28)
+Subtitle.BackgroundTransparency = 1
+Subtitle.Text             = "Script · Violence District"
+Subtitle.TextColor3       = T.textSec
+Subtitle.Font             = Enum.Font.Gotham
+Subtitle.TextSize         = 10
+Subtitle.TextXAlignment   = Enum.TextXAlignment.Left
+Subtitle.Parent           = Header
+
+-- Version pill
+local Ver = Instance.new("Frame")
+Ver.Size             = UDim2.new(0, 38, 0, 18)
+Ver.Position         = UDim2.new(1, -50, 0, 12)
+Ver.BackgroundColor3 = T.btnBase
+Ver.BorderSizePixel  = 0
+Ver.Parent           = Header
+corner(Ver, 5)
+stroke(Ver, T.accent, 1, 0.4)
+
+local VerLbl = Instance.new("TextLabel")
+VerLbl.Size                   = UDim2.new(1, 0, 1, 0)
+VerLbl.BackgroundTransparency = 1
+VerLbl.Text                   = "v2.0"
+VerLbl.TextColor3             = T.accent
+VerLbl.Font                   = Enum.Font.GothamBold
+VerLbl.TextSize               = 10
+VerLbl.Parent                 = Ver
+
+-- ═══ BODY (container untuk semua tombol) ═════════════════════
+local Body = Instance.new("Frame")
+Body.Size             = UDim2.new(1, 0, 1, -56)
+Body.Position         = UDim2.new(0, 0, 0, 56)
+Body.BackgroundTransparency = 1
+Body.Parent           = Panel
+
+-- ── Tombol factory: modern w/ accent bar + hover tween ──────
+local function makeBtn(labelText, posY, onClick, parent)
+    parent = parent or Body
+    local b = Instance.new("TextButton")
+    b.Size             = UDim2.new(0, PANEL_W - 28, 0, 34)
+    b.Position         = UDim2.new(0, 14, 0, posY)
+    b.BackgroundColor3 = T.btnBase
+    b.BorderSizePixel  = 0
+    b.Text             = "    " .. labelText  -- indent buat ngasih ruang accent bar
+    b.TextColor3       = T.textPri
+    b.Font             = Enum.Font.GothamMedium
+    b.TextSize         = 12
+    b.TextXAlignment   = Enum.TextXAlignment.Left
+    b.AutoButtonColor  = false
+    b.Parent           = parent
+    corner(b, 8)
+    local bStroke = stroke(b, T.borderLo, 1, 0.4)
+
+    -- Accent bar kiri (indicator state)
+    local bar = Instance.new("Frame")
+    bar.Name             = "AccentBar"
+    bar.Size             = UDim2.new(0, 3, 0.55, 0)
+    bar.Position         = UDim2.new(0, 6, 0.225, 0)
+    bar.BackgroundColor3 = T.textDim
+    bar.BorderSizePixel  = 0
+    bar.Parent           = b
+    corner(bar, 2)
+
+    -- Hover effect (tween halus)
+    b.MouseEnter:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnHover})
+        tween(bStroke, TWEEN_FAST, {Transparency = 0.1, Color = T.borderHi})
+    end)
+    b.MouseLeave:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnBase})
+        tween(bStroke, TWEEN_FAST, {Transparency = 0.4, Color = T.borderLo})
+    end)
+    -- Press feedback
+    b.MouseButton1Down:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnActive})
+    end)
+    b.MouseButton1Up:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnHover})
+    end)
+
+    b.MouseButton1Click:Connect(onClick)
+    return b
+end
+
+-- Helper buat update warna accent bar (toggle state visual)
+local function setBtnAccent(btn, color)
+    local bar = btn:FindFirstChild("AccentBar")
+    if bar then tween(bar, TWEEN_NORMAL, {BackgroundColor3 = color}) end
+end
+
+-- ── Y POSITIONS (relative to Body) ──────────────────────────
+local Y_ROLE        = 10
+local Y_ESP         = 50
+local Y_TP          = 90
+local Y_FLY         = 130
+local Y_NOCLIP      = 170
+local Y_FULLBRIGHT  = 210
+local Y_AUTOREPAIR  = 250
+local Y_AUTOESCAPE  = 290
+local Y_AIMBOT      = 330
+-- Divider + speed section di bawah
+local Y_DIVIDER     = 376
+local Y_SPEED_LBL   = 388
+local Y_SPEED       = 406
+local Y_SPEED_CTRL  = 446
+-- Aimbot FOV section
+local Y_AIMBOT_LBL  = 486
+local Y_AIMBOT_CTRL = 504
+
+-- ── ROLE button ─────────────────────────────────────────────
+local roleBtn = makeBtn("[ROLE]  Auto: " .. roleCache, Y_ROLE, function()
+    if not CFG.roleOverride then
+        CFG.roleOverride = true
+        CFG.manualRole   = roleCache ~= "Unknown" and roleCache or "Survivor"
+    end
+    CFG.manualRole = CFG.manualRole == "Survivor" and "Killer" or "Survivor"
+    roleBtn.Text = "    [ROLE]  Manual: " .. CFG.manualRole
+    local c = CFG.manualRole == "Killer" and T.danger or T.success
+    setBtnAccent(roleBtn, c)
+end)
+
+local function getRoleAccent(r)
+    if r == "Killer"   then return T.danger end
+    if r == "Survivor" then return T.success end
+    return T.textDim
+end
+setBtnAccent(roleBtn, getRoleAccent(roleCache))
+
+LP:GetPropertyChangedSignal("Team"):Connect(function()
+    if not CFG.roleOverride then
+        local r = computeRole()
+        roleCache = r
+        roleBtn.Text = "    [ROLE]  Auto: " .. r
+        setBtnAccent(roleBtn, getRoleAccent(r))
+    end
+end)
+
+-- ── ESP ─────────────────────────────────────────────────────
+local espBtn = makeBtn("[1]  ESP : ON", Y_ESP, function()
+    CFG.espEnabled = not CFG.espEnabled
+    espBtn.Text = "    [1]  ESP : " .. (CFG.espEnabled and "ON" or "OFF")
+    setBtnAccent(espBtn, CFG.espEnabled and T.accent or T.danger)
+end)
+setBtnAccent(espBtn, T.accent)  -- start: ON
+
+-- ── TP ──────────────────────────────────────────────────────
+local tpBtn
+-- TpPanel forward-declare
+local TpPanel, refreshTpList, tpList, tpSelIdx, updateTpHighlight, Scroll
+
+tpBtn = makeBtn("[2]  Teleport Menu", Y_TP, function()
+    CFG.tpOpen = not CFG.tpOpen
+    if TpPanel then
+        TpPanel.Visible = CFG.tpOpen
+    end
+    if CFG.tpOpen and refreshTpList then refreshTpList() end
+    setBtnAccent(tpBtn, CFG.tpOpen and T.info or T.textDim)
+end)
+
+-- ── Fly / Noclip / Fullbright / AutoRepair ──────────────────
+local flyBtn, noclipBtn, fullbrightBtn, autoRepairBtn
+
+local function updateFlyBtn()
+    flyBtn.Text = "    [4]  Fly : " .. (CFG.flyEnabled and "ON" or "OFF")
+    setBtnAccent(flyBtn, CFG.flyEnabled and T.info or T.textDim)
+end
+
+local function updateNoclipBtn()
+    noclipBtn.Text = "    [5]  Noclip : " .. (CFG.noclipEnabled and "ON" or "OFF")
+    setBtnAccent(noclipBtn, CFG.noclipEnabled and T.info or T.textDim)
+end
+
+local function updateFullbrightBtn()
+    fullbrightBtn.Text = "    [6]  Fullbright : " .. (CFG.fullbrightEnabled and "ON" or "OFF")
+    setBtnAccent(fullbrightBtn, CFG.fullbrightEnabled and T.warning or T.textDim)
+end
+
+local function updateAutoRepairBtn()
+    autoRepairBtn.Text = "    [7]  Auto Repair : " .. (CFG.autoRepairEnabled and "ON" or "OFF")
+    setBtnAccent(autoRepairBtn, CFG.autoRepairEnabled and T.success or T.textDim)
+end
+
+local function toggleFly()
+    CFG.flyEnabled = not CFG.flyEnabled
+    if CFG.flyEnabled then attachFlyObjects() else removeFlyObjects() end
+    updateFlyBtn()
+end
+
+local function toggleNoclip()
+    CFG.noclipEnabled = not CFG.noclipEnabled
+    if not CFG.noclipEnabled then
+        local char = LP.Character
+        if char then
+            for _, part in ipairs(char:GetDescendants()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    part.CanCollide = true
+                end
+            end
+        end
+    end
+    updateNoclipBtn()
+end
+
+local function toggleFullbright()
+    CFG.fullbrightEnabled = not CFG.fullbrightEnabled
+    if CFG.fullbrightEnabled then applyFullbright() else restoreFullbright() end
+    updateFullbrightBtn()
+end
+
+local function toggleAutoRepair()
+    CFG.autoRepairEnabled = not CFG.autoRepairEnabled
+    updateAutoRepairBtn()
+end
+
+flyBtn        = makeBtn("[4]  Fly : OFF",        Y_FLY,        toggleFly)
+noclipBtn     = makeBtn("[5]  Noclip : OFF",     Y_NOCLIP,     toggleNoclip)
+fullbrightBtn = makeBtn("[6]  Fullbright : OFF", Y_FULLBRIGHT, toggleFullbright)
+autoRepairBtn = makeBtn("[7]  Auto Repair : OFF",Y_AUTOREPAIR, toggleAutoRepair)
+
+-- ── Auto Escape (toggle [8]) ─────────────────────────────────
+local autoEscapeBtn
+local function updateAutoEscapeBtn()
+    autoEscapeBtn.Text = "    [8]  Auto Escape : " .. (CFG.autoEscapeEnabled and "ON" or "OFF")
+    setBtnAccent(autoEscapeBtn, CFG.autoEscapeEnabled and T.success or T.textDim)
+end
+local function toggleAutoEscape()
+    CFG.autoEscapeEnabled = not CFG.autoEscapeEnabled
+    updateAutoEscapeBtn()
+end
+autoEscapeBtn = makeBtn("[8]  Auto Escape : OFF", Y_AUTOESCAPE, toggleAutoEscape)
+
+-- ── Aimbot (toggle [9]) ──────────────────────────────────────
+local aimbotBtn, aimbotFovLbl  -- forward declare
+local function updateAimbotBtn()
+    aimbotBtn.Text = "    [9]  Aimbot : " .. (CFG.aimbotEnabled and "ON" or "OFF") .. "  ·  " .. CFG.aimbotFOV
+    setBtnAccent(aimbotBtn, CFG.aimbotEnabled and T.danger or T.textDim)
+end
+local function toggleAimbot()
+    CFG.aimbotEnabled = not CFG.aimbotEnabled
+    updateAimbotBtn()
+end
+aimbotBtn = makeBtn("[9]  Aimbot : OFF  ·  120", Y_AIMBOT, toggleAimbot)
+
+-- ── DIVIDER + SPEED SECTION (bottom) ────────────────────────
+local Divider = Instance.new("Frame")
+Divider.Size             = UDim2.new(1, -28, 0, 1)
+Divider.Position         = UDim2.new(0, 14, 0, Y_DIVIDER)
+Divider.BackgroundColor3 = T.borderHi
+Divider.BackgroundTransparency = 0.4
+Divider.BorderSizePixel  = 0
+Divider.Parent           = Body
+
+local SpeedHeader = Instance.new("TextLabel")
+SpeedHeader.Size             = UDim2.new(1, -28, 0, 14)
+SpeedHeader.Position         = UDim2.new(0, 14, 0, Y_SPEED_LBL)
+SpeedHeader.BackgroundTransparency = 1
+SpeedHeader.Text             = "SPEED CONTROL"
+SpeedHeader.TextColor3       = T.textSec
+SpeedHeader.Font             = Enum.Font.GothamBold
+SpeedHeader.TextSize         = 9
+SpeedHeader.TextXAlignment   = Enum.TextXAlignment.Left
+SpeedHeader.Parent           = Body
+
+local speedBtn, speedValLbl
+
+local function updateSpeedDisplay()
+    speedBtn.Text = "    [3]  Speed : " .. (CFG.speedEnabled and "ON" or "OFF") .. "  ·  " .. CFG.speedValue
+    setBtnAccent(speedBtn, CFG.speedEnabled and T.info or T.textDim)
+    speedValLbl.Text = tostring(CFG.speedValue)
+end
+
+local function toggleSpeed()
+    CFG.speedEnabled = not CFG.speedEnabled
+    local char = LP.Character
+    if char then
+        local hum = char:FindFirstChild("Humanoid")
+        if hum then
+            hum.WalkSpeed = CFG.speedEnabled and CFG.speedValue or 16
+        end
+    end
+    updateSpeedDisplay()
+end
+
+speedBtn = makeBtn("[3]  Speed : OFF  ·  30", Y_SPEED, toggleSpeed)
+
+-- Baris kontrol -/value/+ (modern segmented control)
+local function makeSpeedCtrl(label, posX, width, onClick)
+    local b = Instance.new("TextButton")
+    b.Size             = UDim2.new(0, width, 0, 30)
+    b.Position         = UDim2.new(0, posX,  0, Y_SPEED_CTRL)
+    b.BackgroundColor3 = T.btnBase
+    b.BorderSizePixel  = 0
+    b.Text             = label
+    b.TextColor3       = T.textPri
+    b.Font             = Enum.Font.GothamBold
+    b.TextSize         = 15
+    b.AutoButtonColor  = false
+    b.Parent           = Body
+    corner(b, 7)
+    local s = stroke(b, T.borderLo, 1, 0.4)
+    b.MouseEnter:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnHover})
+        tween(s, TWEEN_FAST, {Color = T.accent, Transparency = 0.2})
+    end)
+    b.MouseLeave:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnBase})
+        tween(s, TWEEN_FAST, {Color = T.borderLo, Transparency = 0.4})
+    end)
+    b.MouseButton1Click:Connect(onClick)
+    return b
+end
+
+-- Layout simetris: 14 + 42 + 8 + 106 + 8 + 42 = 220, end x = 226 (match regular btn)
+makeSpeedCtrl("−", 14, 42, function()
+    CFG.speedValue = math.max(CFG.speedMin, CFG.speedValue - CFG.speedStep)
+    updateSpeedDisplay()
+end)
+
+speedValLbl = Instance.new("TextLabel")
+speedValLbl.Size             = UDim2.new(0, 106, 0, 30)
+speedValLbl.Position         = UDim2.new(0, 64, 0, Y_SPEED_CTRL)
+speedValLbl.BackgroundColor3 = T.bgInput
+speedValLbl.BorderSizePixel  = 0
+speedValLbl.Text             = "30"
+speedValLbl.TextColor3       = T.accent
+speedValLbl.Font             = Enum.Font.GothamBold
+speedValLbl.TextSize         = 14
+speedValLbl.TextXAlignment   = Enum.TextXAlignment.Center
+speedValLbl.Parent           = Body
+corner(speedValLbl, 7)
+stroke(speedValLbl, T.accentDim, 1, 0.3)
+
+makeSpeedCtrl("+", 184, 42, function()
+    CFG.speedValue = math.min(CFG.speedMax, CFG.speedValue + CFG.speedStep)
+    updateSpeedDisplay()
+end)
+
+-- ── AIMBOT FOV section ──────────────────────────────────────
+local AimbotFovHeader = Instance.new("TextLabel")
+AimbotFovHeader.Size             = UDim2.new(1, -28, 0, 14)
+AimbotFovHeader.Position         = UDim2.new(0, 14, 0, Y_AIMBOT_LBL)
+AimbotFovHeader.BackgroundTransparency = 1
+AimbotFovHeader.Text             = "AIMBOT FOV"
+AimbotFovHeader.TextColor3       = T.textSec
+AimbotFovHeader.Font             = Enum.Font.GothamBold
+AimbotFovHeader.TextSize         = 9
+AimbotFovHeader.TextXAlignment   = Enum.TextXAlignment.Left
+AimbotFovHeader.Parent           = Body
+
+local function updateAimbotFovDisplay()
+    if aimbotFovLbl then aimbotFovLbl.Text = tostring(CFG.aimbotFOV) end
+    updateAimbotBtn()  -- refresh button text supaya FOV ke-update di label tombol
+end
+
+local function makeAimbotCtrl(label, posX, width, onClick)
+    local b = Instance.new("TextButton")
+    b.Size             = UDim2.new(0, width, 0, 30)
+    b.Position         = UDim2.new(0, posX,  0, Y_AIMBOT_CTRL)
+    b.BackgroundColor3 = T.btnBase
+    b.BorderSizePixel  = 0
+    b.Text             = label
+    b.TextColor3       = T.textPri
+    b.Font             = Enum.Font.GothamBold
+    b.TextSize         = 15
+    b.AutoButtonColor  = false
+    b.Parent           = Body
+    corner(b, 7)
+    local s = stroke(b, T.borderLo, 1, 0.4)
+    b.MouseEnter:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnHover})
+        tween(s, TWEEN_FAST, {Color = T.danger, Transparency = 0.2})
+    end)
+    b.MouseLeave:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnBase})
+        tween(s, TWEEN_FAST, {Color = T.borderLo, Transparency = 0.4})
+    end)
+    b.MouseButton1Click:Connect(onClick)
+    return b
+end
+
+makeAimbotCtrl("−", 14, 42, function()
+    CFG.aimbotFOV = math.max(CFG.aimbotFOVMin, CFG.aimbotFOV - CFG.aimbotFOVStep)
+    updateAimbotFovDisplay()
+end)
+
+aimbotFovLbl = Instance.new("TextLabel")
+aimbotFovLbl.Size             = UDim2.new(0, 106, 0, 30)
+aimbotFovLbl.Position         = UDim2.new(0, 64, 0, Y_AIMBOT_CTRL)
+aimbotFovLbl.BackgroundColor3 = T.bgInput
+aimbotFovLbl.BorderSizePixel  = 0
+aimbotFovLbl.Text             = "120"
+aimbotFovLbl.TextColor3       = T.danger
+aimbotFovLbl.Font             = Enum.Font.GothamBold
+aimbotFovLbl.TextSize         = 14
+aimbotFovLbl.TextXAlignment   = Enum.TextXAlignment.Center
+aimbotFovLbl.Parent           = Body
+corner(aimbotFovLbl, 7)
+stroke(aimbotFovLbl, T.danger, 1, 0.4)
+
+makeAimbotCtrl("+", 184, 42, function()
+    CFG.aimbotFOV = math.min(CFG.aimbotFOVMax, CFG.aimbotFOV + CFG.aimbotFOVStep)
+    updateAimbotFovDisplay()
+end)
+
+-- ── CROSSHAIR dot (center screen, always-on) ───────────────
+local Crosshair = Instance.new("Frame")
+Crosshair.Size             = UDim2.new(0, CFG.crosshairSize, 0, CFG.crosshairSize)
+Crosshair.AnchorPoint      = Vector2.new(0.5, 0.5)
+Crosshair.Position         = UDim2.new(0.5, 0, 0.5, 0)
+Crosshair.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Crosshair.BorderSizePixel  = 0
+Crosshair.ZIndex           = 50
+Crosshair.Parent           = SG
+corner(Crosshair, math.floor(CFG.crosshairSize / 2))
+
+-- ── FOV ring (visible cuma pas Aimbot ON, size = aimbotFOV*2) ──
+local FovRing = Instance.new("Frame")
+FovRing.Size                   = UDim2.new(0, CFG.aimbotFOV * 2, 0, CFG.aimbotFOV * 2)
+FovRing.AnchorPoint            = Vector2.new(0.5, 0.5)
+FovRing.Position               = UDim2.new(0.5, 0, 0.5, 0)
+FovRing.BackgroundTransparency = 1
+FovRing.BorderSizePixel        = 0
+FovRing.Visible                = false
+FovRing.ZIndex                 = 49
+FovRing.Parent                 = SG
+-- Circle via UICorner 50%
+local fovCornerInst = Instance.new("UICorner")
+fovCornerInst.CornerRadius = UDim.new(0.5, 0)
+fovCornerInst.Parent = FovRing
+-- Outline stroke (danger color)
+local fovStroke = Instance.new("UIStroke")
+fovStroke.Color        = T.danger
+fovStroke.Thickness    = 1
+fovStroke.Transparency = 0.3
+fovStroke.Parent       = FovRing
+
+-- Sync loop: visibility + size FovRing follow state
+task.spawn(function()
+    local lastVis, lastFov = false, -1
+    while task.wait(0.1) do
+        if FovRing and FovRing.Parent then
+            if CFG.aimbotEnabled ~= lastVis then
+                lastVis = CFG.aimbotEnabled
+                FovRing.Visible = CFG.aimbotEnabled
+            end
+            if CFG.aimbotFOV ~= lastFov then
+                lastFov = CFG.aimbotFOV
+                FovRing.Size = UDim2.new(0, CFG.aimbotFOV * 2, 0, CFG.aimbotFOV * 2)
+            end
+        end
+    end
+end)
+
+-- ═══ TELEPORT PANEL ══════════════════════════════════════════
+TpPanel = Instance.new("Frame")
+TpPanel.Name             = "TpPanel"
+TpPanel.Size             = UDim2.new(0, 230, 0, 280)
+TpPanel.Position         = UDim2.new(0, PANEL_W + 30, 0, 44)
+TpPanel.BackgroundColor3 = T.bgPanel
+TpPanel.BorderSizePixel  = 0
+TpPanel.Visible          = false
+TpPanel.Active           = true
+TpPanel.Draggable        = true
+TpPanel.Parent           = SG
+corner(TpPanel, 12)
+stroke(TpPanel, T.borderHi, 1, 0.35)
+gradient(TpPanel,
+    Color3.fromRGB(28, 30, 38),
+    Color3.fromRGB(18, 20, 26),
+    135)
+
+local TpHeader = Instance.new("Frame")
+TpHeader.Size             = UDim2.new(1, 0, 0, 38)
+TpHeader.BackgroundColor3 = T.bgHeader
+TpHeader.BorderSizePixel  = 0
+TpHeader.Parent           = TpPanel
+corner(TpHeader, 12)
+
+local TpHeaderBot = Instance.new("Frame")
+TpHeaderBot.Size = UDim2.new(1, 0, 0, 12)
+TpHeaderBot.Position = UDim2.new(0, 0, 1, -12)
+TpHeaderBot.BackgroundColor3 = T.bgHeader
+TpHeaderBot.BorderSizePixel = 0
+TpHeaderBot.Parent = TpHeader
+
+local TpDiv = Instance.new("Frame")
+TpDiv.Size             = UDim2.new(1, -32, 0, 1)
+TpDiv.Position         = UDim2.new(0, 16, 1, 0)
+TpDiv.BackgroundColor3 = T.info
+TpDiv.BackgroundTransparency = 0.5
+TpDiv.BorderSizePixel  = 0
+TpDiv.Parent           = TpHeader
+
+local TpDot = Instance.new("Frame")
+TpDot.Size             = UDim2.new(0, 6, 0, 6)
+TpDot.Position         = UDim2.new(0, 16, 0.5, -3)
+TpDot.BackgroundColor3 = T.info
+TpDot.BorderSizePixel  = 0
+TpDot.Parent           = TpHeader
+corner(TpDot, 3)
+
+local TpTitleLbl = Instance.new("TextLabel")
+TpTitleLbl.Size                   = UDim2.new(1, -30, 1, 0)
+TpTitleLbl.Position               = UDim2.new(0, 28, 0, 0)
+TpTitleLbl.BackgroundTransparency = 1
+TpTitleLbl.Text                   = "TELEPORT TO PLAYER"
+TpTitleLbl.TextColor3             = T.textPri
+TpTitleLbl.Font                   = Enum.Font.GothamBold
+TpTitleLbl.TextSize               = 12
+TpTitleLbl.TextXAlignment         = Enum.TextXAlignment.Left
+TpTitleLbl.Parent                 = TpHeader
+
+Scroll = Instance.new("ScrollingFrame")
+Scroll.Size                = UDim2.new(1, -16, 1, -50)
+Scroll.Position            = UDim2.new(0, 8, 0, 44)
+Scroll.BackgroundTransparency = 1
+Scroll.BorderSizePixel     = 0
+Scroll.ScrollBarThickness  = 3
+Scroll.ScrollBarImageColor3 = T.accent
+Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Scroll.CanvasSize          = UDim2.new(0, 0, 0, 0)
+Scroll.Parent              = TpPanel
+
+local ListLayout = Instance.new("UIListLayout")
+ListLayout.FillDirection = Enum.FillDirection.Vertical
+ListLayout.SortOrder     = Enum.SortOrder.Name
+ListLayout.Padding       = UDim.new(0, 5)
+ListLayout.Parent        = Scroll
+
+local ListPad = Instance.new("UIPadding")
+ListPad.PaddingTop    = UDim.new(0, 4)
+ListPad.PaddingLeft   = UDim.new(0, 2)
+ListPad.PaddingRight  = UDim.new(0, 2)
+ListPad.Parent        = Scroll
+
+tpList   = {}
+tpSelIdx = 1
+
+updateTpHighlight = function(newIdx)
+    if tpList[tpSelIdx] and tpList[tpSelIdx].button.Parent then
+        local prev = tpList[tpSelIdx].button
+        tween(prev, TWEEN_NORMAL, {BackgroundColor3 = T.btnBase})
+        local pStroke = prev:FindFirstChildOfClass("UIStroke")
+        if pStroke then tween(pStroke, TWEEN_NORMAL, {Color = T.borderLo, Transparency = 0.4}) end
+    end
+    tpSelIdx = newIdx
+    if tpList[tpSelIdx] and tpList[tpSelIdx].button.Parent then
+        local cur = tpList[tpSelIdx].button
+        tween(cur, TWEEN_NORMAL, {BackgroundColor3 = T.btnHover})
+        local cStroke = cur:FindFirstChildOfClass("UIStroke")
+        if cStroke then tween(cStroke, TWEEN_NORMAL, {Color = T.accent, Transparency = 0.1}) end
+        local btnPos = cur.AbsolutePosition.Y
+        local scrollTop = Scroll.AbsolutePosition.Y
+        local scrollBot = scrollTop + Scroll.AbsoluteSize.Y
+        if btnPos < scrollTop then
+            Scroll.CanvasPosition = Vector2.new(0, Scroll.CanvasPosition.Y - 38)
+        elseif btnPos + 34 > scrollBot then
+            Scroll.CanvasPosition = Vector2.new(0, Scroll.CanvasPosition.Y + 38)
+        end
+    end
+end
+
+refreshTpList = function()
+    for _, c in ipairs(Scroll:GetChildren()) do
+        if c:IsA("TextButton") then c:Destroy() end
+    end
+    tpList   = {}
+    tpSelIdx = 1
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p == LP then continue end
+
+        local btn = Instance.new("TextButton")
+        btn.Name             = p.Name
+        btn.Size             = UDim2.new(1, -4, 0, 34)
+        btn.BackgroundColor3 = T.btnBase
+        btn.BorderSizePixel  = 0
+        btn.Text             = "  " .. p.DisplayName
+        btn.TextColor3       = T.textPri
+        btn.Font             = Enum.Font.GothamMedium
+        btn.TextSize         = 12
+        btn.TextXAlignment   = Enum.TextXAlignment.Left
+        btn.AutoButtonColor  = false
+        btn.Parent           = Scroll
+        corner(btn, 7)
+        local s = stroke(btn, T.borderLo, 1, 0.4)
+
+        btn.MouseEnter:Connect(function()
+            tween(btn, TWEEN_FAST, {BackgroundColor3 = T.btnHover})
+        end)
+        btn.MouseLeave:Connect(function()
+            if tpList[tpSelIdx] and tpList[tpSelIdx].button ~= btn then
+                tween(btn, TWEEN_FAST, {BackgroundColor3 = T.btnBase})
+            end
+        end)
+
+        local entry = {player = p, button = btn}
+        table.insert(tpList, entry)
+
+        local idx = #tpList
+        btn.MouseButton1Click:Connect(function()
+            updateTpHighlight(idx)
+            teleportTo(p)
+        end)
+    end
+
+    if #tpList > 0 then
+        tween(tpList[1].button, TWEEN_NORMAL, {BackgroundColor3 = T.btnHover})
+        local s1 = tpList[1].button:FindFirstChildOfClass("UIStroke")
+        if s1 then tween(s1, TWEEN_NORMAL, {Color = T.accent, Transparency = 0.1}) end
+    end
+end
+
+Players.PlayerAdded:Connect(function()
+    if CFG.tpOpen then refreshTpList() end
+end)
+Players.PlayerRemoving:Connect(function()
+    if CFG.tpOpen then refreshTpList() end
+end)
+
+-- ═══ MENU TOGGLE PILL (selalu terlihat) ══════════════════════
+local MenuToggle = Instance.new("TextButton")
+MenuToggle.Name             = "MenuToggle"
+MenuToggle.Size             = UDim2.new(0, 130, 0, 28)
+MenuToggle.Position         = UDim2.new(0, 16, 0, 10)
+MenuToggle.BackgroundColor3 = T.bgHeader
+MenuToggle.BorderSizePixel  = 0
+MenuToggle.Text             = "  ●  ARTHEIRS  ▾"
+MenuToggle.TextColor3       = T.textPri
+MenuToggle.Font             = Enum.Font.GothamBold
+MenuToggle.TextSize         = 12
+MenuToggle.TextXAlignment   = Enum.TextXAlignment.Left
+MenuToggle.AutoButtonColor  = false
+MenuToggle.Active           = true
+MenuToggle.Parent           = SG
+corner(MenuToggle, 8)
+local mtStroke = stroke(MenuToggle, T.accent, 1, 0.3)
+
+MenuToggle.MouseEnter:Connect(function()
+    tween(MenuToggle, TWEEN_FAST, {BackgroundColor3 = T.btnHover})
+    tween(mtStroke, TWEEN_FAST, {Transparency = 0})
+end)
+MenuToggle.MouseLeave:Connect(function()
+    tween(MenuToggle, TWEEN_FAST, {BackgroundColor3 = T.bgHeader})
+    tween(mtStroke, TWEEN_FAST, {Transparency = 0.3})
+end)
+
+-- ── Panel open/close (instant toggle, no animation) ─────────
+local function setPanelOpen(open)
+    Panel.Visible   = open
+    MenuToggle.Text = open and "  ●  ARTHEIRS  ▾" or "  ●  ARTHEIRS  ▸"
+end
+
+local panelOpen = true
+MenuToggle.MouseButton1Click:Connect(function()
+    panelOpen = not panelOpen
+    setPanelOpen(panelOpen)
+end)
+
+-- INSERT key juga toggle menu
+UIS.InputBegan:Connect(function(input, _)
+    if input.KeyCode == Enum.KeyCode.Insert then
+        panelOpen = not panelOpen
+        setPanelOpen(panelOpen)
+    end
+end)
+
+-- Panel langsung visible pas script load (no slide animation)
+Panel.Size    = UDim2.new(0, PANEL_W, 0, PANEL_H)
+Panel.Visible = true
+
+-- ═══ FPS COUNTER (top-right) ═════════════════════════════════
+local FpsBox = Instance.new("Frame")
+FpsBox.Size             = UDim2.new(0, 92, 0, 28)
+FpsBox.Position         = UDim2.new(1, -108, 0, 16)
+FpsBox.AnchorPoint      = Vector2.new(0, 0)
+FpsBox.BackgroundColor3 = T.bgHeader
+FpsBox.BorderSizePixel  = 0
+FpsBox.Parent           = SG
+corner(FpsBox, 8)
+stroke(FpsBox, T.borderHi, 1, 0.4)
+gradient(FpsBox,
+    Color3.fromRGB(32, 34, 44),
+    Color3.fromRGB(22, 24, 32),
+    90)
+
+local FpsDot = Instance.new("Frame")
+FpsDot.Size             = UDim2.new(0, 6, 0, 6)
+FpsDot.Position         = UDim2.new(0, 10, 0.5, -3)
+FpsDot.BackgroundColor3 = T.success
+FpsDot.BorderSizePixel  = 0
+FpsDot.Parent           = FpsBox
+corner(FpsDot, 3)
+
+local FpsLbl = Instance.new("TextLabel")
+FpsLbl.Size                   = UDim2.new(1, -22, 1, 0)
+FpsLbl.Position               = UDim2.new(0, 22, 0, 0)
+FpsLbl.BackgroundTransparency = 1
+FpsLbl.Text                   = "60 FPS"
+FpsLbl.TextColor3             = T.textPri
+FpsLbl.Font                   = Enum.Font.GothamBold
+FpsLbl.TextSize               = 11
+FpsLbl.TextXAlignment         = Enum.TextXAlignment.Left
+FpsLbl.Parent                 = FpsBox
+
+-- FPS sampling (smoothing tiap 0.5 detik biar ga flicker)
+local fpsFrames, fpsSum = 0, 0
+RunService.RenderStepped:Connect(function(dt)
+    fpsFrames += 1
+    fpsSum    += dt
+    if fpsSum >= 0.5 then
+        local fps = math.floor(fpsFrames / fpsSum + 0.5)
+        FpsLbl.Text = fps .. " FPS"
+        -- Dot color sesuai performance
+        local target
+        if     fps >= 50 then target = T.success
+        elseif fps >= 30 then target = T.warning
+        else                  target = T.danger
+        end
+        tween(FpsDot, TWEEN_FAST, {BackgroundColor3 = target})
+        fpsFrames, fpsSum = 0, 0
+    end
+end)
+
+-- ═══ TOAST NOTIFICATION (top-center) ═════════════════════════
+-- Slide-in dari atas, hold, slide-out. Auto-destroy.
+local function showToast(title, subtitle, duration)
+    duration = duration or 3
+    local toast = Instance.new("Frame")
+    toast.Size             = UDim2.new(0, 300, 0, 62)
+    toast.AnchorPoint      = Vector2.new(0.5, 0)
+    toast.Position         = UDim2.new(0.5, 0, 0, -80)
+    toast.BackgroundColor3 = T.bgPanel
+    toast.BorderSizePixel  = 0
+    toast.Parent           = SG
+    corner(toast, 12)
+    stroke(toast, T.accent, 1, 0.2)
+    gradient(toast,
+        Color3.fromRGB(32, 34, 44),
+        Color3.fromRGB(20, 22, 28),
+        135)
+
+    -- Accent dot dengan glow
+    local glow = Instance.new("Frame")
+    glow.Size             = UDim2.new(0, 18, 0, 18)
+    glow.Position         = UDim2.new(0, 12, 0.5, -9)
+    glow.BackgroundColor3 = T.accent
+    glow.BackgroundTransparency = 0.6
+    glow.BorderSizePixel  = 0
+    glow.Parent           = toast
+    corner(glow, 9)
+
+    local dot = Instance.new("Frame")
+    dot.Size             = UDim2.new(0, 8, 0, 8)
+    dot.Position         = UDim2.new(0, 17, 0.5, -4)
+    dot.BackgroundColor3 = T.accent
+    dot.BorderSizePixel  = 0
+    dot.Parent           = toast
+    corner(dot, 4)
+
+    -- Title
+    local tlbl = Instance.new("TextLabel")
+    tlbl.Size                   = UDim2.new(1, -50, 0, 20)
+    tlbl.Position               = UDim2.new(0, 38, 0, 12)
+    tlbl.BackgroundTransparency = 1
+    tlbl.Text                   = title
+    tlbl.TextColor3             = T.textPri
+    tlbl.Font                   = Enum.Font.GothamBold
+    tlbl.TextSize               = 13
+    tlbl.TextXAlignment         = Enum.TextXAlignment.Left
+    tlbl.Parent                 = toast
+
+    -- Subtitle
+    local slbl = Instance.new("TextLabel")
+    slbl.Size                   = UDim2.new(1, -50, 0, 16)
+    slbl.Position               = UDim2.new(0, 38, 0, 32)
+    slbl.BackgroundTransparency = 1
+    slbl.Text                   = subtitle or ""
+    slbl.TextColor3             = T.textSec
+    slbl.Font                   = Enum.Font.Gotham
+    slbl.TextSize               = 11
+    slbl.TextXAlignment         = Enum.TextXAlignment.Left
+    slbl.Parent                 = toast
+
+    -- Slide-in dari atas
+    tween(toast, TWEEN_SLOW, {Position = UDim2.new(0.5, 0, 0, 24)})
+
+    -- Hold, slide-out, destroy
+    task.delay(duration, function()
+        tween(toast, TWEEN_NORMAL, {Position = UDim2.new(0.5, 0, 0, -80)})
+        task.wait(0.3)
+        if toast and toast.Parent then toast:Destroy() end
+    end)
+end
+
+-- ════════════════════════════════════════════════════════════
+-- ▼ AXON-STYLE WINDOW (Multi-tab + Sidebar + Components)
+-- ════════════════════════════════════════════════════════════
+
+-- Map: featureName → updateVisualFn (dipakai keybind buat sync checkbox)
+local checkboxUpdaters = {}
+
+-- ── Checkbox factory ────────────────────────────────────────
+-- (label kiri, square box kanan; click toggle, fill saat ON)
+local function makeCheckbox(parent, posY, label, getter, setter)
+    local cont = Instance.new("Frame")
+    cont.Size                  = UDim2.new(1, 0, 0, 44)
+    cont.Position              = UDim2.new(0, 0, 0, posY)
+    cont.BackgroundColor3      = T.bgInput
+    cont.BackgroundTransparency= 0.6
+    cont.BorderSizePixel       = 0
+    cont.Parent                = parent
+    corner(cont, 8)
+
+    -- Padding internal
+    local pad = Instance.new("UIPadding")
+    pad.PaddingLeft  = UDim.new(0, 12)
+    pad.PaddingRight = UDim.new(0, 10)
+    pad.Parent       = cont
+
+    -- Label kiri
+    local lbl = Instance.new("TextLabel")
+    lbl.Size                   = UDim2.new(1, -36, 1, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text                   = label
+    lbl.TextColor3             = T.textPri
+    lbl.Font                   = Enum.Font.GothamMedium
+    lbl.TextSize               = 13
+    lbl.TextXAlignment         = Enum.TextXAlignment.Left
+    lbl.TextYAlignment         = Enum.TextYAlignment.Center
+    lbl.Parent                 = cont
+
+    -- Box kanan
+    local box = Instance.new("TextButton")
+    box.Size              = UDim2.new(0, 22, 0, 22)
+    box.Position          = UDim2.new(1, -26, 0.5, -11)
+    box.BackgroundColor3  = T.btnBase
+    box.BorderSizePixel   = 0
+    box.Text              = ""
+    box.AutoButtonColor   = false
+    box.Parent            = cont
+    corner(box, 5)
+    local boxStroke = stroke(box, T.borderLo, 1.5, 0.2)
+
+    -- Check icon
+    local check = Instance.new("TextLabel")
+    check.Size                   = UDim2.new(1, 0, 1, 0)
+    check.BackgroundTransparency = 1
+    check.Text                   = "✓"
+    check.TextColor3             = Color3.fromRGB(255, 255, 255)
+    check.Font                   = Enum.Font.GothamBold
+    check.TextSize               = 14
+    check.Visible                = false
+    check.Parent                 = box
+
+    local function updateVisual(on)
+        if on then
+            tween(box, TWEEN_FAST, {BackgroundColor3 = T.accent})
+            tween(boxStroke, TWEEN_FAST, {Color = T.accent, Transparency = 0})
+            check.Visible = true
+        else
+            tween(box, TWEEN_FAST, {BackgroundColor3 = T.btnBase})
+            tween(boxStroke, TWEEN_FAST, {Color = T.borderLo, Transparency = 0.2})
+            check.Visible = false
+        end
+    end
+
+    box.MouseButton1Click:Connect(function()
+        local newVal = not getter()
+        setter(newVal)
+        updateVisual(newVal)
+    end)
+
+    updateVisual(getter())
+    return cont, updateVisual
+end
+
+-- ── Slider factory ──────────────────────────────────────────
+-- (label kiri atas, numeric kanan atas, track bawah dengan thumb drag)
+local function makeSlider(parent, posY, label, minV, maxV, step, getter, setter)
+    local cont = Instance.new("Frame")
+    cont.Size                  = UDim2.new(1, 0, 0, 50)
+    cont.Position              = UDim2.new(0, 0, 0, posY)
+    cont.BackgroundTransparency= 1
+    cont.Parent                = parent
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size                   = UDim2.new(1, -60, 0, 18)
+    lbl.Position               = UDim2.new(0, 0, 0, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text                   = label
+    lbl.TextColor3             = T.textPri
+    lbl.Font                   = Enum.Font.GothamMedium
+    lbl.TextSize               = 12
+    lbl.TextXAlignment         = Enum.TextXAlignment.Left
+    lbl.Parent                 = cont
+
+    local valBox = Instance.new("Frame")
+    valBox.Size              = UDim2.new(0, 50, 0, 20)
+    valBox.Position          = UDim2.new(1, -50, 0, 0)
+    valBox.BackgroundColor3  = T.bgInput
+    valBox.BorderSizePixel   = 0
+    valBox.Parent            = cont
+    corner(valBox, 5)
+    stroke(valBox, T.borderLo, 1, 0.4)
+
+    local valLbl = Instance.new("TextLabel")
+    valLbl.Size                   = UDim2.new(1, 0, 1, 0)
+    valLbl.BackgroundTransparency = 1
+    valLbl.Text                   = tostring(getter())
+    valLbl.TextColor3             = T.accent
+    valLbl.Font                   = Enum.Font.GothamBold
+    valLbl.TextSize               = 11
+    valLbl.TextXAlignment         = Enum.TextXAlignment.Center
+    valLbl.Parent                 = valBox
+
+    local track = Instance.new("Frame")
+    track.Size              = UDim2.new(1, 0, 0, 5)
+    track.Position          = UDim2.new(0, 0, 0, 32)
+    track.BackgroundColor3  = T.bgInput
+    track.BorderSizePixel   = 0
+    track.Parent            = cont
+    corner(track, 3)
+
+    local initP = math.clamp((getter() - minV) / (maxV - minV), 0, 1)
+
+    local fill = Instance.new("Frame")
+    fill.Size              = UDim2.new(initP, 0, 1, 0)
+    fill.BackgroundColor3  = T.accent
+    fill.BorderSizePixel   = 0
+    fill.Parent            = track
+    corner(fill, 3)
+
+    local thumb = Instance.new("Frame")
+    thumb.Size                  = UDim2.new(0, 14, 0, 14)
+    thumb.Position              = UDim2.new(initP, -7, 0.5, -7)
+    thumb.BackgroundColor3      = T.textPri
+    thumb.BorderSizePixel       = 0
+    thumb.Parent                = track
+    corner(thumb, 7)
+    stroke(thumb, T.accent, 1.5, 0)
+
+    local dragging = false
+
+    local function setValue(v)
+        v = math.clamp(math.floor(v / step + 0.5) * step, minV, maxV)
+        setter(v)
+        local p = (v - minV) / (maxV - minV)
+        fill.Size      = UDim2.new(p, 0, 1, 0)
+        thumb.Position = UDim2.new(p, -7, 0.5, -7)
+        valLbl.Text    = tostring(v)
+    end
+
+    track.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            local mouseX = input.Position.X
+            local trackAbsX = track.AbsolutePosition.X
+            local trackW = track.AbsoluteSize.X
+            local p = math.clamp((mouseX - trackAbsX) / trackW, 0, 1)
+            setValue(minV + p * (maxV - minV))
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if not dragging then return end
+        if input.UserInputType ~= Enum.UserInputType.MouseMovement
+       and input.UserInputType ~= Enum.UserInputType.Touch then return end
+        local mouseX = input.Position.X
+        local trackAbsX = track.AbsolutePosition.X
+        local trackW = track.AbsoluteSize.X
+        local p = math.clamp((mouseX - trackAbsX) / trackW, 0, 1)
+        setValue(minV + p * (maxV - minV))
+    end)
+
+    UIS.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    return cont, setValue
+end
+
+-- ── Section header factory ──────────────────────────────────
+local function makeSectionHeader(parent, posY, text)
+    local cont = Instance.new("Frame")
+    cont.Size                  = UDim2.new(1, 0, 0, 30)
+    cont.Position              = UDim2.new(0, 0, 0, posY)
+    cont.BackgroundTransparency= 1
+    cont.Parent                = parent
+
+    -- Accent bar kiri (modern touch)
+    local bar = Instance.new("Frame")
+    bar.Size                   = UDim2.new(0, 3, 0, 14)
+    bar.Position               = UDim2.new(0, 0, 0, 4)
+    bar.BackgroundColor3       = T.accent
+    bar.BorderSizePixel        = 0
+    bar.Parent                 = cont
+    corner(bar, 2)
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size                   = UDim2.new(1, -12, 0, 18)
+    lbl.Position               = UDim2.new(0, 12, 0, 2)
+    lbl.BackgroundTransparency = 1
+    lbl.Text                   = text
+    lbl.TextColor3             = T.textPri
+    lbl.Font                   = Enum.Font.GothamBold
+    lbl.TextSize               = 11
+    lbl.TextXAlignment         = Enum.TextXAlignment.Left
+    lbl.Parent                 = cont
+
+    local line = Instance.new("Frame")
+    line.Size                  = UDim2.new(1, 0, 0, 1)
+    line.Position              = UDim2.new(0, 0, 1, -2)
+    line.BackgroundColor3      = T.borderLo
+    line.BackgroundTransparency= 0.55
+    line.BorderSizePixel       = 0
+    line.Parent                = cont
+    return cont
+end
+
+-- ════════════════════════════════════════════════════════════
+-- ▼ MAIN WINDOW
+-- ════════════════════════════════════════════════════════════
+local WIN_W, WIN_H        = 660, 480
+local SIDEBAR_W           = 160
+local TITLEBAR_H          = 50
+local CONTENT_W           = WIN_W - SIDEBAR_W
+
+local Window = Instance.new("Frame")
+Window.Name             = "Window"
+Window.Size             = UDim2.new(0, WIN_W, 0, WIN_H)
+Window.Position         = UDim2.new(0.5, -WIN_W/2, 0.5, -WIN_H/2)
+Window.BackgroundColor3 = T.bgPanel
+Window.BorderSizePixel  = 0
+Window.Active           = true
+Window.Draggable        = true
+Window.Visible          = false  -- show setelah semua tab di-build
+Window.Parent           = SG
+corner(Window, 12)
+stroke(Window, T.borderHi, 1, 0.35)
+
+-- ── Title bar ───────────────────────────────────────────────
+local TITLE_BLACK = Color3.fromRGB(10, 11, 15)
+
+local WTitleBar = Instance.new("Frame")
+WTitleBar.Size             = UDim2.new(1, 0, 0, TITLEBAR_H)
+WTitleBar.BackgroundColor3 = TITLE_BLACK
+WTitleBar.BorderSizePixel  = 0
+WTitleBar.Parent           = Window
+corner(WTitleBar, 12)
+
+-- Cover bottom rounded corners (biar full flat hitam dari atas ke divider)
+local WTitleBot = Instance.new("Frame")
+WTitleBot.Size             = UDim2.new(1, 0, 0, 14)
+WTitleBot.Position         = UDim2.new(0, 0, 1, -14)
+WTitleBot.BackgroundColor3 = TITLE_BLACK
+WTitleBot.BorderSizePixel  = 0
+WTitleBot.Parent           = WTitleBar
+
+local WTitleDiv = Instance.new("Frame")
+WTitleDiv.Size                  = UDim2.new(1, 0, 0, 1)
+WTitleDiv.Position              = UDim2.new(0, 0, 1, 0)
+WTitleDiv.BackgroundColor3      = T.borderHi
+WTitleDiv.BackgroundTransparency= 0.5
+WTitleDiv.BorderSizePixel       = 0
+WTitleDiv.Parent                = WTitleBar
+
+local WBrand = Instance.new("TextLabel")
+WBrand.Size                   = UDim2.new(0, 200, 0, 18)
+WBrand.Position               = UDim2.new(0, 18, 0, 9)
+WBrand.BackgroundTransparency = 1
+WBrand.Text                   = "Artheirs"
+WBrand.TextColor3             = T.textPri
+WBrand.Font                   = Enum.Font.GothamBold
+WBrand.TextSize               = 15
+WBrand.TextXAlignment         = Enum.TextXAlignment.Left
+WBrand.TextYAlignment         = Enum.TextYAlignment.Center
+WBrand.Parent                 = WTitleBar
+
+local WSub = Instance.new("TextLabel")
+WSub.Size                   = UDim2.new(0, 200, 0, 14)
+WSub.Position               = UDim2.new(0, 18, 0, 27)
+WSub.BackgroundTransparency = 1
+WSub.Text                   = "Violence District"
+WSub.TextColor3             = T.textSec
+WSub.Font                   = Enum.Font.Gotham
+WSub.TextSize               = 11
+WSub.TextXAlignment         = Enum.TextXAlignment.Left
+WSub.TextYAlignment         = Enum.TextYAlignment.Center
+WSub.Parent                 = WTitleBar
+
+-- Window controls (close button kanan atas)
+local function makeWindowCtrl(text, posX, onClick)
+    local b = Instance.new("TextButton")
+    b.Size             = UDim2.new(0, 26, 0, 22)
+    b.Position         = UDim2.new(1, posX, 0, 10)
+    b.BackgroundColor3 = T.btnBase
+    b.BorderSizePixel  = 0
+    b.Text             = text
+    b.TextColor3       = T.textSec
+    b.Font             = Enum.Font.GothamBold
+    b.TextSize         = 12
+    b.AutoButtonColor  = false
+    b.Parent           = WTitleBar
+    corner(b, 5)
+    b.MouseEnter:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnHover})
+    end)
+    b.MouseLeave:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnBase})
+    end)
+    b.MouseButton1Click:Connect(onClick)
+    return b
+end
+
+makeWindowCtrl("−", -64, function()
+    Window.Visible = false
+    MenuToggle.Text = "  ●  ARTHEIRS  ▸"
+end)
+makeWindowCtrl("✕", -32, function()
+    Window.Visible = false
+    MenuToggle.Text = "  ●  ARTHEIRS  ▸"
+end)
+
+-- ── Sidebar ─────────────────────────────────────────────────
+local WSidebar = Instance.new("Frame")
+WSidebar.Size             = UDim2.new(0, SIDEBAR_W, 1, -TITLEBAR_H)
+WSidebar.Position         = UDim2.new(0, 0, 0, TITLEBAR_H)
+WSidebar.BackgroundColor3 = Color3.fromRGB(15, 17, 22)
+WSidebar.BorderSizePixel  = 0
+WSidebar.Parent           = Window
+
+local WSideDiv = Instance.new("Frame")
+WSideDiv.Size                  = UDim2.new(0, 1, 1, 0)
+WSideDiv.Position              = UDim2.new(1, -1, 0, 0)
+WSideDiv.BackgroundColor3      = T.borderLo
+WSideDiv.BackgroundTransparency= 0.4
+WSideDiv.BorderSizePixel       = 0
+WSideDiv.Parent                = WSidebar
+
+-- ── Content area ────────────────────────────────────────────
+local WContent = Instance.new("Frame")
+WContent.Size                  = UDim2.new(0, CONTENT_W, 1, -TITLEBAR_H)
+WContent.Position              = UDim2.new(0, SIDEBAR_W, 0, TITLEBAR_H)
+WContent.BackgroundTransparency= 1
+WContent.Parent                = Window
+
+local WContentPad = Instance.new("UIPadding")
+WContentPad.PaddingLeft   = UDim.new(0, 28)
+WContentPad.PaddingRight  = UDim.new(0, 28)
+WContentPad.PaddingTop    = UDim.new(0, 22)
+WContentPad.PaddingBottom = UDim.new(0, 22)
+WContentPad.Parent        = WContent
+
+-- ── Tab heading (besar di atas content area) ───────────────
+local WTabHeading = Instance.new("TextLabel")
+WTabHeading.Size                   = UDim2.new(1, 0, 0, 28)
+WTabHeading.BackgroundTransparency = 1
+WTabHeading.Text                   = "Survivor"
+WTabHeading.TextColor3             = T.textPri
+WTabHeading.Font                   = Enum.Font.GothamBold
+WTabHeading.TextSize               = 22
+WTabHeading.TextXAlignment         = Enum.TextXAlignment.Left
+WTabHeading.Parent                 = WContent
+
+-- Subtitle/breadcrumb di bawah heading
+local WTabSub = Instance.new("TextLabel")
+WTabSub.Size                   = UDim2.new(1, 0, 0, 14)
+WTabSub.Position               = UDim2.new(0, 0, 0, 30)
+WTabSub.BackgroundTransparency = 1
+WTabSub.Text                   = "Violence District · Configure features"
+WTabSub.TextColor3             = T.textDim
+WTabSub.Font                   = Enum.Font.Gotham
+WTabSub.TextSize               = 11
+WTabSub.TextXAlignment         = Enum.TextXAlignment.Left
+WTabSub.Parent                 = WContent
+
+-- ── Tab body container (di bawah heading) — ScrollingFrame supaya muat banyak fitur
+local WTabBody = Instance.new("ScrollingFrame")
+WTabBody.Size                  = UDim2.new(1, 0, 1, -58)
+WTabBody.Position              = UDim2.new(0, 0, 0, 58)
+WTabBody.BackgroundTransparency= 1
+WTabBody.BorderSizePixel       = 0
+WTabBody.ScrollBarThickness    = 4
+WTabBody.ScrollBarImageColor3  = T.borderHi
+WTabBody.CanvasSize            = UDim2.new(0, 0, 0, 600)  -- auto-fit via tab content
+WTabBody.AutomaticCanvasSize   = Enum.AutomaticSize.Y
+WTabBody.ScrollingDirection    = Enum.ScrollingDirection.Y
+WTabBody.Parent                = WContent
+
+-- ════════════════════════════════════════════════════════════
+-- ▼ SIDEBAR ITEMS + TAB CONTAINERS
+-- ════════════════════════════════════════════════════════════
+local tabs = {}    -- name → {Item, Content, SetActive, Heading}
+local currentTab = nil
+
+local function switchTab(name)
+    if currentTab == name then return end
+    if currentTab and tabs[currentTab] then
+        tabs[currentTab].Content.Visible = false
+        tabs[currentTab].SetActive(false)
+    end
+    currentTab = name
+    if tabs[name] then
+        tabs[name].Content.Visible = true
+        tabs[name].SetActive(true)
+        WTabHeading.Text = tabs[name].Heading or name
+    end
+end
+
+local function makeSidebarItem(name, posY)
+    local btn = Instance.new("TextButton")
+    btn.Size              = UDim2.new(1, -20, 0, 36)
+    btn.Position          = UDim2.new(0, 10, 0, posY)
+    btn.BackgroundColor3  = Color3.fromRGB(15, 17, 22)
+    btn.BorderSizePixel   = 0
+    btn.Text              = "    " .. name
+    btn.TextColor3        = T.textSec
+    btn.Font              = Enum.Font.GothamMedium
+    btn.TextSize          = 13
+    btn.TextXAlignment    = Enum.TextXAlignment.Left
+    btn.AutoButtonColor   = false
+    btn.Parent            = WSidebar
+    corner(btn, 6)
+
+    -- Active bar kiri
+    local bar = Instance.new("Frame")
+    bar.Size             = UDim2.new(0, 3, 0.55, 0)
+    bar.Position         = UDim2.new(0, 0, 0.225, 0)
+    bar.BackgroundColor3 = T.accent
+    bar.BorderSizePixel  = 0
+    bar.Visible          = false
+    bar.Parent           = btn
+    corner(bar, 2)
+
+    btn.MouseEnter:Connect(function()
+        if not btn:GetAttribute("Active") then
+            tween(btn, TWEEN_FAST, {BackgroundColor3 = T.btnBase})
+        end
+    end)
+    btn.MouseLeave:Connect(function()
+        if not btn:GetAttribute("Active") then
+            tween(btn, TWEEN_FAST, {BackgroundColor3 = Color3.fromRGB(15, 17, 22)})
+        end
+    end)
+
+    local function setActive(active)
+        btn:SetAttribute("Active", active)
+        bar.Visible = active
+        if active then
+            tween(btn, TWEEN_NORMAL, {BackgroundColor3 = T.btnHover, TextColor3 = T.textPri})
+        else
+            tween(btn, TWEEN_NORMAL, {BackgroundColor3 = Color3.fromRGB(15, 17, 22), TextColor3 = T.textSec})
+        end
+    end
+
+    return btn, setActive
+end
+
+-- Sidebar category label
+local function makeSidebarLabel(text, posY)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size                   = UDim2.new(1, -20, 0, 16)
+    lbl.Position               = UDim2.new(0, 18, 0, posY)
+    lbl.BackgroundTransparency = 1
+    lbl.Text                   = text
+    lbl.TextColor3             = T.textDim
+    lbl.Font                   = Enum.Font.GothamBold
+    lbl.TextSize               = 10
+    lbl.TextXAlignment         = Enum.TextXAlignment.Left
+    lbl.Parent                 = WSidebar
+end
+
+-- Tab content frame factory
+local function makeTabContent()
+    local f = Instance.new("Frame")
+    f.Size                  = UDim2.new(1, 0, 1, 0)
+    f.BackgroundTransparency= 1
+    f.Visible               = false
+    f.Parent                = WTabBody
+    return f
+end
+
+-- ── Build sidebar layout ────────────────────────────────────
+-- GAMEPLAY section
+makeSidebarLabel("GAMEPLAY", 16)
+local _t = {
+    {name="Survivor", y=40, heading="Survivor"},
+    {name="Killer",   y=84, heading="Killer"},
+}
+
+-- VISUALS section
+makeSidebarLabel("VISUALS", 138)
+local _t2 = {
+    {name="ESP",    y=162, heading="ESP"},
+}
+
+-- COMBAT section
+makeSidebarLabel("COMBAT", 204)
+local _t3 = {
+    {name="Combat",   y=228, heading="Combat"},
+}
+
+-- MISC section
+makeSidebarLabel("MISC", 270)
+local _t4 = {
+    {name="Misc", y=294, heading="Misc"},
+}
+
+local sidebarItems = {}
+for _, t in ipairs(_t)  do table.insert(sidebarItems, t) end
+for _, t in ipairs(_t2) do table.insert(sidebarItems, t) end
+for _, t in ipairs(_t3) do table.insert(sidebarItems, t) end
+for _, t in ipairs(_t4) do table.insert(sidebarItems, t) end
+
+for _, t in ipairs(sidebarItems) do
+    local content = makeTabContent()
+    local item, setActive = makeSidebarItem(t.name, t.y)
+    item.MouseButton1Click:Connect(function() switchTab(t.name) end)
+    tabs[t.name] = {Item=item, Content=content, SetActive=setActive, Heading=t.heading}
+end
+
+-- ── User widget at bottom of sidebar ───────────────────────
+local WUser = Instance.new("Frame")
+WUser.Size             = UDim2.new(1, -20, 0, 46)
+WUser.Position         = UDim2.new(0, 10, 1, -58)
+WUser.BackgroundColor3 = T.bgHeader
+WUser.BorderSizePixel  = 0
+WUser.Parent           = WSidebar
+corner(WUser, 7)
+stroke(WUser, T.borderLo, 1, 0.5)
+
+local WUserDot = Instance.new("Frame")
+WUserDot.Size             = UDim2.new(0, 8, 0, 8)
+WUserDot.Position         = UDim2.new(0, 10, 0.5, -4)
+WUserDot.BackgroundColor3 = T.success
+WUserDot.BorderSizePixel  = 0
+WUserDot.Parent           = WUser
+corner(WUserDot, 4)
+
+local WUserName = Instance.new("TextLabel")
+WUserName.Size                   = UDim2.new(1, -28, 0, 14)
+WUserName.Position               = UDim2.new(0, 24, 0, 6)
+WUserName.BackgroundTransparency = 1
+WUserName.Text                   = LP.DisplayName or LP.Name
+WUserName.TextColor3             = T.textPri
+WUserName.Font                   = Enum.Font.GothamBold
+WUserName.TextSize               = 11
+WUserName.TextXAlignment         = Enum.TextXAlignment.Left
+WUserName.Parent                 = WUser
+
+local WUserRole = Instance.new("TextLabel")
+WUserRole.Size                   = UDim2.new(1, -28, 0, 12)
+WUserRole.Position               = UDim2.new(0, 24, 0, 20)
+WUserRole.BackgroundTransparency = 1
+WUserRole.Text                   = "[" .. roleCache .. "] Violence..."
+WUserRole.TextColor3             = T.textSec
+WUserRole.Font                   = Enum.Font.Gotham
+WUserRole.TextSize               = 9
+WUserRole.TextXAlignment         = Enum.TextXAlignment.Left
+WUserRole.Parent                 = WUser
+
+-- Sync user widget role saat berubah
+LP:GetPropertyChangedSignal("Team"):Connect(function()
+    task.wait(0.1)
+    WUserRole.Text = "[" .. (CFG.roleOverride and CFG.manualRole or roleCache) .. "] Violence..."
+end)
+
+-- ── Default active tab ─────────────────────────────────────
+switchTab("Survivor")
+
+-- ════════════════════════════════════════════════════════════
+-- ▼ HIDE OLD UI + REROUTE MenuToggle/INSERT KE NEW WINDOW
+-- ════════════════════════════════════════════════════════════
+Panel.Visible = false  -- hide old menu panel
+TpPanel.Visible = false  -- hide old TP panel (akan dipake di Teleport tab)
+
+-- Reroute setPanelOpen ke new Window
+setPanelOpen = function(open)
+    Window.Visible = open
+    MenuToggle.Text = open and "  ●  ARTHEIRS  ▾" or "  ●  ARTHEIRS  ▸"
+end
+
+-- Initial state: Window visible
+Window.Visible = true
+
+-- ════════════════════════════════════════════════════════════
+-- ▼ STEP 2: TAB CONTENT (populate semua 6 tabs)
+-- ════════════════════════════════════════════════════════════
+
+-- Slider updater table (sync ke CFG)
+local sliderUpdaters = {}
+
+-- toggleEsp helper (sebelumnya inline di espBtn click handler)
+local function toggleEsp()
+    CFG.espEnabled = not CFG.espEnabled
+    -- Update old hidden button (silent)
+    if espBtn then
+        espBtn.Text = "    [1]  ESP : " .. (CFG.espEnabled and "ON" or "OFF")
+        setBtnAccent(espBtn, CFG.espEnabled and T.accent or T.danger)
+    end
+end
+
+-- Wrapper: makeCheckbox yang bind ke CFG[cfgKey] + panggil toggleFn
+local function makeCheckboxFor(parent, posY, label, cfgKey, toggleFn)
+    return makeCheckbox(parent, posY, label,
+        function() return CFG[cfgKey] end,
+        function(v)
+            if CFG[cfgKey] ~= v then
+                toggleFn()
+            end
+        end)
+end
+
+-- ──────────────────────────────────────────────────────────
+-- ▶ TAB: Survivor  (do...end wrap untuk hemat local register slots)
+-- ──────────────────────────────────────────────────────────
+do
+local sTab = tabs["Survivor"].Content
+
+makeSectionHeader(sTab, 0, "REPAIR")
+-- Mini-do wraps untuk free local registers segera (hindari overflow di role buttons)
+do
+    local _, u = makeCheckboxFor(sTab, 38, "Auto Repair Generators",   "autoRepairEnabled", toggleAutoRepair)
+    checkboxUpdaters.autoRepair = u
+end
+do
+    local _, u = makeCheckboxFor(sTab, 92, "Auto Escape (when killer near)", "autoEscapeEnabled", toggleAutoEscape)
+    checkboxUpdaters.autoEscape = u
+end
+
+makeSectionHeader(sTab, 158, "RESCUE & HEAL")
+do
+    local _, u = makeCheckboxFor(sTab, 196, "Auto Rescue Hooked Teammate", "autoRescueEnabled",
+        function() CFG.autoRescueEnabled = not CFG.autoRescueEnabled end)
+    checkboxUpdaters.autoRescue = u
+end
+do
+    local _, u = makeCheckboxFor(sTab, 250, "Auto Heal (self & team)", "autoHealEnabled",
+        function() CFG.autoHealEnabled = not CFG.autoHealEnabled end)
+    checkboxUpdaters.autoHeal = u
+end
+do
+    local _, u = makeCheckboxFor(sTab, 304, "Auto Unhook Self", "autoUnhookEnabled",
+        function() CFG.autoUnhookEnabled = not CFG.autoUnhookEnabled end)
+    checkboxUpdaters.autoUnhook = u
+end
+
+makeSectionHeader(sTab, 368, "ROLE")
+local roleLbl = Instance.new("TextLabel")
+roleLbl.Size                   = UDim2.new(1, 0, 0, 18)
+roleLbl.Position               = UDim2.new(0, 0, 0, 406)
+roleLbl.BackgroundTransparency = 1
+roleLbl.Text                   = "Current: " .. (CFG.roleOverride and ("Manual " .. CFG.manualRole) or ("Auto " .. roleCache))
+roleLbl.TextColor3             = T.textPri
+roleLbl.Font                   = Enum.Font.GothamMedium
+roleLbl.TextSize               = 12
+roleLbl.TextXAlignment         = Enum.TextXAlignment.Left
+roleLbl.Parent                 = sTab
+
+-- Role override: 3 button row (Auto / Survivor / Killer)
+local function makeRoleBtn(text, posX, color, onClick)
+    local b = Instance.new("TextButton")
+    b.Size              = UDim2.new(0, 88, 0, 34)
+    b.Position          = UDim2.new(0, posX, 0, 438)
+    b.BackgroundColor3  = T.btnBase
+    b.BorderSizePixel   = 0
+    b.Text              = text
+    b.TextColor3        = T.textSec
+    b.Font              = Enum.Font.GothamBold
+    b.TextSize          = 10
+    b.AutoButtonColor   = false
+    b.Parent            = sTab
+    corner(b, 6)
+    local s = stroke(b, T.borderLo, 1, 0.4)
+    b.MouseEnter:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnHover})
+    end)
+    b.MouseLeave:Connect(function()
+        tween(b, TWEEN_FAST, {BackgroundColor3 = T.btnBase})
+    end)
+    b.MouseButton1Click:Connect(onClick)
+    return b, s
+end
+
+local roleButtons = {}
+local function updateRoleDisplay()
+    roleLbl.Text = "Current: " .. (CFG.roleOverride and ("Manual " .. CFG.manualRole) or ("Auto " .. roleCache))
+    -- Highlight selected button
+    for key, data in pairs(roleButtons) do
+        local active = (key == "Auto" and not CFG.roleOverride)
+                    or (key == "Survivor" and CFG.roleOverride and CFG.manualRole == "Survivor")
+                    or (key == "Killer"   and CFG.roleOverride and CFG.manualRole == "Killer")
+        if active then
+            tween(data.btn,   TWEEN_NORMAL, {BackgroundColor3 = data.color})
+            tween(data.btn,   TWEEN_NORMAL, {TextColor3 = T.textPri})
+            tween(data.stroke,TWEEN_NORMAL, {Color = data.color, Transparency = 0})
+        else
+            tween(data.btn,   TWEEN_NORMAL, {BackgroundColor3 = T.btnBase})
+            tween(data.btn,   TWEEN_NORMAL, {TextColor3 = T.textSec})
+            tween(data.stroke,TWEEN_NORMAL, {Color = T.borderLo, Transparency = 0.4})
+        end
+    end
+end
+
+local autoB, autoS = makeRoleBtn("AUTO", 0, T.accent, function()
+    CFG.roleOverride = false
+    updateRoleDisplay()
+end)
+local survB, survS = makeRoleBtn("SURVIVOR", 98, T.success, function()
+    CFG.roleOverride = true
+    CFG.manualRole = "Survivor"
+    updateRoleDisplay()
+end)
+local killB, killS = makeRoleBtn("KILLER", 196, T.danger, function()
+    CFG.roleOverride = true
+    CFG.manualRole = "Killer"
+    updateRoleDisplay()
+end)
+roleButtons.Auto     = {btn=autoB, stroke=autoS, color=T.accent}
+roleButtons.Survivor = {btn=survB, stroke=survS, color=T.success}
+roleButtons.Killer   = {btn=killB, stroke=killS, color=T.danger}
+updateRoleDisplay()
+
+-- Auto-update saat role berubah dari team detection
+LP:GetPropertyChangedSignal("Team"):Connect(function()
+    task.wait(0.1)
+    if not CFG.roleOverride then updateRoleDisplay() end
+end)
+
+end  -- ◀ END Survivor tab scope
+
+-- ──────────────────────────────────────────────────────────
+-- ▶ TAB: Killer (placeholder)
+-- ──────────────────────────────────────────────────────────
+do
+local kTab = tabs["Killer"].Content
+
+makeSectionHeader(kTab, 0, "OFFENSIVE")
+do
+    local _, u = makeCheckboxFor(kTab, 38, "Auto-Attack (M1) — melee + facing", "autoAttackEnabled",
+        function() CFG.autoAttackEnabled = not CFG.autoAttackEnabled end)
+    checkboxUpdaters.autoAttack = u
+end
+do
+    local _, u = makeCheckboxFor(kTab, 92, "Auto-Pickup Downed Survivor", "autoPickupEnabled",
+        function() CFG.autoPickupEnabled = not CFG.autoPickupEnabled end)
+    checkboxUpdaters.autoPickup = u
+end
+do
+    local _, u = makeCheckboxFor(kTab, 146, "Auto-Hook (after carrying)", "autoHookEnabled",
+        function() CFG.autoHookEnabled = not CFG.autoHookEnabled end)
+    checkboxUpdaters.autoHook = u
+end
+do
+    local _, u = makeCheckboxFor(kTab, 200, "Auto-Break Pallet", "autoBreakPalletEnabled",
+        function() CFG.autoBreakPalletEnabled = not CFG.autoBreakPalletEnabled end)
+    checkboxUpdaters.autoBreakPallet = u
+end
+
+makeSectionHeader(kTab, 264, "ANTI-COUNTER (best-effort)")
+do
+    local _, u = makeCheckboxFor(kTab, 302, "Anti-Pallet-Stun", "antiPalletStunEnabled",
+        function() CFG.antiPalletStunEnabled = not CFG.antiPalletStunEnabled end)
+    checkboxUpdaters.antiPalletStun = u
+end
+do
+    local _, u = makeCheckboxFor(kTab, 356, "Anti-Flashlight-Blind", "antiFlashlightEnabled",
+        function() CFG.antiFlashlightEnabled = not CFG.antiFlashlightEnabled end)
+    checkboxUpdaters.antiFlashlight = u
+end
+do
+    local _, u = makeCheckboxFor(kTab, 410, "Anti-Vault-Stun", "antiVaultStunEnabled",
+        function() CFG.antiVaultStunEnabled = not CFG.antiVaultStunEnabled end)
+    checkboxUpdaters.antiVaultStun = u
+end
+do
+    local _, u = makeCheckboxFor(kTab, 464, "Anti-Shoot-Stun (survivor gun)", "antiShootStunEnabled",
+        function() CFG.antiShootStunEnabled = not CFG.antiShootStunEnabled end)
+    checkboxUpdaters.antiShootStun = u
+end
+
+makeSectionHeader(kTab, 528, "AWARENESS")
+do
+    local _, u = makeCheckboxFor(kTab, 566, "Generator Repair Activity (red highlight)", "genActivityEnabled",
+        function() CFG.genActivityEnabled = not CFG.genActivityEnabled end)
+    checkboxUpdaters.genActivity = u
+end
+
+end  -- ◀ END Killer tab scope
+
+-- ──────────────────────────────────────────────────────────
+-- ▶ TAB: ESP
+-- ──────────────────────────────────────────────────────────
+do
+local eTab = tabs["ESP"].Content
+
+makeSectionHeader(eTab, 0, "ESP TARGETS")
+do
+    local _, u = makeCheckboxFor(eTab, 38, "ESP Killer (merah)", "espKillerEnabled",
+        function() CFG.espKillerEnabled = not CFG.espKillerEnabled end)
+    checkboxUpdaters.espKiller = u
+end
+do
+    local _, u = makeCheckboxFor(eTab, 92, "ESP Survivor (hijau / orange-HOOKED / kuning-DOWN)", "espSurvivorEnabled",
+        function() CFG.espSurvivorEnabled = not CFG.espSurvivorEnabled end)
+    checkboxUpdaters.espSurvivor = u
+end
+do
+    local _, u = makeCheckboxFor(eTab, 146, "ESP Generator (kuning + progress %)", "espGeneratorEnabled",
+        function() CFG.espGeneratorEnabled = not CFG.espGeneratorEnabled end)
+    checkboxUpdaters.espGenerator = u
+end
+do
+    local _, u = makeCheckboxFor(eTab, 200, "ESP Pallet (cyan)", "espPalletEnabled",
+        function() CFG.espPalletEnabled = not CFG.espPalletEnabled end)
+    checkboxUpdaters.espPallet = u
+end
+
+makeSectionHeader(eTab, 264, "VISUALS")
+do
+    local _, u = makeCheckboxFor(eTab, 302, "Fullbright", "fullbrightEnabled", toggleFullbright)
+    checkboxUpdaters.fullbright = u
+end
+
+end  -- ◀ END ESP tab scope
+
+-- ──────────────────────────────────────────────────────────
+-- ▶ TAB: Misc (god mode + movement + abilities + teleport list)
+-- ──────────────────────────────────────────────────────────
+do
+local mTab = tabs["Misc"].Content
+
+makeSectionHeader(mTab, 0, "GENERAL")
+do
+    local _, u = makeCheckboxFor(mTab, 38, "God Mode (infinite health)", "godModeEnabled",
+        function()
+            CFG.godModeEnabled = not CFG.godModeEnabled
+            -- Re-bind supaya MaxHealth langsung di-apply
+            local char = LP.Character
+            if char then
+                local hum = char:FindFirstChild("Humanoid")
+                if hum then
+                    if CFG.godModeEnabled then
+                        pcall(function() hum.MaxHealth = 1e9; hum.Health = hum.MaxHealth end)
+                    else
+                        pcall(function() hum.MaxHealth = 100; hum.Health = math.min(hum.Health, 100) end)
+                    end
+                end
+            end
+        end)
+    checkboxUpdaters.godMode = u
+end
+
+makeSectionHeader(mTab, 102, "MOVEMENT")
+do
+    local _, spdSlider = makeSlider(mTab, 140, "WalkSpeed", CFG.speedMin, CFG.speedMax, CFG.speedStep,
+        function() return CFG.speedValue end,
+        function(v)
+            CFG.speedValue = v
+            if speedValLbl then speedValLbl.Text = tostring(v) end
+            if speedBtn    then updateSpeedDisplay() end
+            if CFG.speedEnabled then
+                local char = LP.Character
+                if char then
+                    local hum = char:FindFirstChild("Humanoid")
+                    if hum then hum.WalkSpeed = v end
+                end
+            end
+        end)
+    sliderUpdaters.speed = spdSlider
+end
+do
+    local _, u = makeCheckboxFor(mTab, 202, "Speed Enabled", "speedEnabled", toggleSpeed)
+    checkboxUpdaters.speed = u
+end
+
+makeSectionHeader(mTab, 266, "ABILITIES")
+do
+    local _, u = makeCheckboxFor(mTab, 304, "Fly", "flyEnabled", toggleFly)
+    checkboxUpdaters.fly = u
+end
+do
+    local _, u = makeCheckboxFor(mTab, 358, "Noclip", "noclipEnabled", toggleNoclip)
+    checkboxUpdaters.noclip = u
+end
+
+makeSectionHeader(mTab, 422, "TELEPORT TO PLAYER")
+
+-- Container untuk player list (di-refresh saat player join/leave atau switchTab)
+local tpContainer = Instance.new("Frame")
+tpContainer.Size                  = UDim2.new(1, 0, 0, 240)
+tpContainer.Position              = UDim2.new(0, 0, 0, 460)
+tpContainer.BackgroundTransparency= 1
+tpContainer.Parent                = mTab
+
+local tpLayout = Instance.new("UIListLayout")
+tpLayout.FillDirection = Enum.FillDirection.Vertical
+tpLayout.Padding       = UDim.new(0, 6)
+tpLayout.Parent        = tpContainer
+
+local function refreshMiscTpList()
+    for _, c in ipairs(tpContainer:GetChildren()) do
+        if c:IsA("TextButton") then c:Destroy() end
+    end
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p == LP then continue end
+        local btn = Instance.new("TextButton")
+        btn.Size              = UDim2.new(1, -8, 0, 36)
+        btn.BackgroundColor3  = T.btnBase
+        btn.BorderSizePixel   = 0
+        btn.Text              = "  " .. p.DisplayName
+        btn.TextColor3        = T.textPri
+        btn.Font              = Enum.Font.GothamMedium
+        btn.TextSize          = 12
+        btn.TextXAlignment    = Enum.TextXAlignment.Left
+        btn.AutoButtonColor   = false
+        btn.Parent            = tpContainer
+        corner(btn, 6)
+        local s = stroke(btn, T.borderLo, 1, 0.4)
+        btn.MouseEnter:Connect(function()
+            tween(btn, TWEEN_FAST, {BackgroundColor3 = T.btnHover})
+            tween(s,   TWEEN_FAST, {Color = T.accent, Transparency = 0.1})
+        end)
+        btn.MouseLeave:Connect(function()
+            tween(btn, TWEEN_FAST, {BackgroundColor3 = T.btnBase})
+            tween(s,   TWEEN_FAST, {Color = T.borderLo, Transparency = 0.4})
+        end)
+        btn.MouseButton1Click:Connect(function() teleportTo(p) end)
+    end
+end
+
+refreshMiscTpList()
+Players.PlayerAdded:Connect(refreshMiscTpList)
+Players.PlayerRemoving:Connect(refreshMiscTpList)
+
+-- Hook switchTab biar refresh list pas pindah ke Misc
+local _origSwitchTabMisc = switchTab
+switchTab = function(name)
+    _origSwitchTabMisc(name)
+    if name == "Misc" then refreshMiscTpList() end
+end
+
+end  -- ◀ END Misc tab scope
+
+-- ──────────────────────────────────────────────────────────
+-- ▶ TAB: Combat
+-- ──────────────────────────────────────────────────────────
+do
+local cTab = tabs["Combat"].Content
+
+makeSectionHeader(cTab, 0, "AIMBOT")
+local _, aimUpd = makeCheckboxFor(cTab, 38, "Aimbot (lock kamera ke target)", "aimbotEnabled", toggleAimbot)
+checkboxUpdaters.aimbot = aimUpd
+
+local _, fovSlider = makeSlider(cTab, 100, "FOV (pixel radius)", CFG.aimbotFOVMin, CFG.aimbotFOVMax, CFG.aimbotFOVStep,
+    function() return CFG.aimbotFOV end,
+    function(v)
+        CFG.aimbotFOV = v
+        if aimbotFovLbl then aimbotFovLbl.Text = tostring(v) end
+        if aimbotBtn    then updateAimbotBtn() end
+    end)
+sliderUpdaters.aimbot = fovSlider
+
+-- Info text
+local aimInfo = Instance.new("TextLabel")
+aimInfo.Size                   = UDim2.new(1, 0, 0, 16)
+aimInfo.Position               = UDim2.new(0, 0, 0, 134)
+aimInfo.BackgroundTransparency = 1
+aimInfo.Text                   = "FOV ring visible at center screen when ON"
+aimInfo.TextColor3             = T.textDim
+aimInfo.Font                   = Enum.Font.Gotham
+aimInfo.TextSize               = 10
+aimInfo.TextXAlignment         = Enum.TextXAlignment.Left
+aimInfo.Parent                 = cTab
+
+end
+
+-- ──────────────────────────────────────────────────────────
+-- ▶ Teleport tab MOVED ke Misc tab (lihat above)
+-- ──────────────────────────────────────────────────────────
+
+-- ──────────────────────────────────────────────────────────
+-- ▶ SYNC LOOP: keep checkbox + slider sync dgn CFG (untuk keybind triggers)
+-- ──────────────────────────────────────────────────────────
+do    
+local syncMap = {
+    esp          = "espEnabled",
+    espKiller    = "espKillerEnabled",
+    espSurvivor  = "espSurvivorEnabled",
+    espGenerator = "espGeneratorEnabled",
+    espPallet    = "espPalletEnabled",
+    fly        = "flyEnabled",
+    noclip     = "noclipEnabled",
+    fullbright = "fullbrightEnabled",
+    autoRepair = "autoRepairEnabled",
+    autoEscape = "autoEscapeEnabled",
+    autoRescue = "autoRescueEnabled",
+    autoHeal   = "autoHealEnabled",
+    autoUnhook = "autoUnhookEnabled",
+    aimbot     = "aimbotEnabled",
+    speed      = "speedEnabled",
+    godMode    = "godModeEnabled",
+    -- Killer
+    autoAttack       = "autoAttackEnabled",
+    autoPickup       = "autoPickupEnabled",
+    autoHook         = "autoHookEnabled",
+    autoBreakPallet  = "autoBreakPalletEnabled",
+    antiPalletStun   = "antiPalletStunEnabled",
+    antiFlashlight   = "antiFlashlightEnabled",
+    antiVaultStun    = "antiVaultStunEnabled",
+    antiShootStun    = "antiShootStunEnabled",
+    genActivity      = "genActivityEnabled",
+}
+local lastSync = {}
+task.spawn(function()
+    while task.wait(0.1) do
+        -- Checkboxes
+        for name, key in pairs(syncMap) do
+            local cur = CFG[key]
+            if lastSync[name] ~= cur then
+                lastSync[name] = cur
+                local u = checkboxUpdaters[name]
+                if u then u(cur) end
+            end
+        end
+        -- Sliders
+        if sliderUpdaters.speed and lastSync.speedValue ~= CFG.speedValue then
+            lastSync.speedValue = CFG.speedValue
+            sliderUpdaters.speed(CFG.speedValue)
+        end
+        if sliderUpdaters.aimbot and lastSync.aimbotFOV ~= CFG.aimbotFOV then
+            lastSync.aimbotFOV = CFG.aimbotFOV
+            sliderUpdaters.aimbot(CFG.aimbotFOV)
+        end
+    end
+end)
+
+end
+
+-- Welcome toast pas script load
+task.delay(0.5, function()
+    showToast("ARTHEIRS SCRIPT LOADED ✓", "v2.0  ·  Violence District", 3.5)
+end)
+
+-- ============================================================
+--  STEP 8: KEYBINDS
+-- ============================================================
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    local key = input.KeyCode
+
+    -- ── Tombol 1/2/3 : blok saat mengetik di chat ──────────
+    if not gameProcessed then
+        if key == CFG.KEY_ESP then
+            CFG.espEnabled = not CFG.espEnabled
+            espBtn.Text    = "    [1]  ESP : " .. (CFG.espEnabled and "ON" or "OFF")
+            setBtnAccent(espBtn, CFG.espEnabled and T.accent or T.danger)
+
+        elseif key == CFG.KEY_TP then
+            -- Switch ke Teleport tab + pastikan Window visible
+            if not Window.Visible then
+                Window.Visible = true
+                MenuToggle.Text = "  ●  ARTHEIRS  ▾"
+                panelOpen = true
+            end
+            switchTab("Teleport")
+
+        elseif key == CFG.KEY_SPEED then
+            toggleSpeed()
+
+        elseif key == CFG.KEY_FLY then
+            toggleFly()
+
+        elseif key == CFG.KEY_NOCLIP then
+            toggleNoclip()
+
+        elseif key == CFG.KEY_FULLBRIGHT then
+            toggleFullbright()
+
+        elseif key == CFG.KEY_AUTOREPAIR then
+            toggleAutoRepair()
+
+        elseif key == CFG.KEY_AUTOESCAPE then
+            toggleAutoEscape()
+
+        elseif key == CFG.KEY_AIMBOT then
+            toggleAimbot()
+        end
+    end
+
+    -- ── Arrow keys : aktif kapanpun (tidak blok saat chat) ─
+    -- Navigasi teleport (UP/DOWN) — hanya saat TP menu terbuka
+    if key == Enum.KeyCode.Up and CFG.tpOpen and #tpList > 0 then
+        local newIdx = tpSelIdx - 1
+        if newIdx < 1 then newIdx = #tpList end
+        updateTpHighlight(newIdx)
+
+    elseif key == Enum.KeyCode.Down and CFG.tpOpen and #tpList > 0 then
+        local newIdx = tpSelIdx + 1
+        if newIdx > #tpList then newIdx = 1 end
+        updateTpHighlight(newIdx)
+
+    -- Konfirmasi teleport (ENTER) — hanya saat TP menu terbuka
+    elseif key == Enum.KeyCode.Return and CFG.tpOpen then
+        if tpList[tpSelIdx] then
+            teleportTo(tpList[tpSelIdx].player)
+        end
+
+    -- Adjust speed (LEFT/RIGHT) — aktif kapanpun
+    elseif key == Enum.KeyCode.Left then
+        CFG.speedValue = math.max(CFG.speedMin, CFG.speedValue - CFG.speedStep)
+        updateSpeedDisplay()
+
+    elseif key == Enum.KeyCode.Right then
+        CFG.speedValue = math.min(CFG.speedMax, CFG.speedValue + CFG.speedStep)
+        updateSpeedDisplay()
+    end
+end)
+
+-- ============================================================
+--  STEP 9: INIT
+-- ============================================================
+print("[Artheirs] Script loaded ✓")
+print("[Artheirs] Team  : " .. (LP.Team and LP.Team.Name or "nil (belum assign)"))
+print("[Artheirs] Role  : " .. getRole())
+print("[Artheirs] [1] ESP  |  [2] Teleport  |  [3] Speed  |  INSERT = Toggle Menu")
+print("[Artheirs] [4] Fly  |  [5] Noclip   |  [6] Fullbright  |  [7] Auto Repair")
+print("[Artheirs] [8] Auto Escape   |  [9] Aimbot")
+print("[Artheirs] Teleport: UP/DOWN pilih, ENTER konfirmasi")
+print("[Artheirs] Speed   : LEFT/RIGHT adjust nilai")
+print("[Artheirs] Fly     : WASD = gerak, SPACE = naik, LCTRL = turun")
+print("[Artheirs] AutoRepair: deket generator (<12 studs) → auto hold left mouse")
+print("[Artheirs] AutoEscape: Survivor + AutoRepair ON + killer dekat → TP ke safest survivor")
+print("[Artheirs] Aimbot  : lock kamera ke target dalam FOV pixel radius (adjust via menu)")
