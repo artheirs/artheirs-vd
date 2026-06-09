@@ -32,7 +32,7 @@ local LP = Players.LocalPlayer
 
 -- GANTI URL ini ke raw GitHub whitelist.lua kamu setelah upload.
 -- Format: https://raw.githubusercontent.com/<USER>/<REPO>/refs/heads/main/whitelist.lua
-local WHITELIST_URL = "https://raw.githubusercontent.com/artheirs/artheirs-vd/refs/heads/main/whitelist.lua"
+local WHITELIST_URL = "https://raw.githubusercontent.com/artheirs/client-utils-vdpc/refs/heads/main/whitelist.lua"
 
 -- Emergency owner fallback: kalau fetch whitelist gagal (GitHub down,
 -- network block, dll), UserId di sini tetap di-allow supaya owner ga
