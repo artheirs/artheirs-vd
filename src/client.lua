@@ -122,6 +122,16 @@ local CFG = {
     speedMax     = 200,
     speedStep    = 5,
 
+    -- Camera FOV (POV adjust di tab Misc)
+    fovValue   = 70,   -- Roblox default; >70 = wider POV, <70 = zoom in
+    fovDefault = 70,
+    fovMin     = 30,
+    fovMax     = 120,
+    fovStep    = 5,
+
+    -- Streamproof (GUI invisible saat record OBS/Medal/ShadowPlay)
+    streamproofEnabled = true,
+
     -- Fly / Noclip / Fullbright
     flyEnabled        = false,
     flySpeedMul       = 1.5,   -- pengali kecepatan fly dari speedValue
@@ -170,10 +180,14 @@ local CFG = {
 
     -- Auto Parry (saat killer attack lo dekat, equip Parry Dagger)
     -- Parry window game = 800ms; cooldown 0.9s antara fire biar window cycle bersih
+    -- Detection: killer-anim-fresh + killer-facing-me (stand-and-hit style, BUKAN lunge)
     autoParryEnabled  = false,
-    parryRange        = 8,      -- killer dist <= ini → fire RMB (lunge attack range)
+    parryRange        = 9,      -- killer dist <= ini → kandidat fire (attack reach ~7-8 studs)
     parryCooldown     = 62,     -- game cd: 60s fail / 90s success → 62s safe minimum
-    parryTick         = 0.05,
+    parryTick         = 0.04,
+    parryFacingDot    = 0.5,    -- killer.LookVector dot (me-killer).Unit > ini → facing me (cone ~60°)
+    parryHoldDuration = 0.55,   -- hold RMB selama ini (cover full parry window 800ms - reaction lag)
+    parryAnimWindow   = 0.18,   -- anim event harus dalam window ini (ms ke arah swing-impact)
     parryDebug        = true,   -- print [PARRY] log ke console F9 buat debug
 
     -- KILLER FEATURES ────────────────────────────────────
@@ -1536,11 +1550,12 @@ local function hasParryWeapon()
     return false
 end
 
-local function nearestKillerDist()
+-- Return (dist, killerHRP, myRoot) buat killer terdekat. dist=math.huge kalau ga ada.
+local function nearestKillerInfo()
     local c = LP.Character
     local myRoot = c and c:FindFirstChild("HumanoidRootPart")
-    if not myRoot then return math.huge end
-    local best = math.huge
+    if not myRoot then return math.huge, nil, nil end
+    local bestD, bestHRP = math.huge, nil
     for _, p in ipairs(Players:GetPlayers()) do
         if p == LP then continue end
         local team = p.Team and p.Team.Name or ""
@@ -1548,9 +1563,13 @@ local function nearestKillerDist()
         local pRoot = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
         if not pRoot then continue end
         local d = (myRoot.Position - pRoot.Position).Magnitude
-        if d < best then best = d end
+        if d < bestD then bestD = d; bestHRP = pRoot end
     end
-    return best
+    return bestD, bestHRP, myRoot
+end
+local function nearestKillerDist()
+    local d = nearestKillerInfo()
+    return d
 end
 
 -- ── Killer animation tracker ────────────────────────────────
@@ -1611,64 +1630,66 @@ task.spawn(function()
         local now = tick()
         if now - lastParryFire < CFG.parryCooldown then continue end  -- silent skip, normal
         if not hasParryWeapon() then logReasonOnce("no-parry-weapon-equipped") continue end
-        local kd = nearestKillerDist()
-        if kd > CFG.parryRange then
+        local kd, killerHRP, myRoot = nearestKillerInfo()
+        if kd > CFG.parryRange or not killerHRP or not myRoot then
             if kd < 15 then dbgParry("killer dist=" .. string.format("%.1f", kd) .. " (range=" .. CFG.parryRange .. ")") end
             continue
         end
-        -- ATTACK DETECTION: combine 2 signal
-        --   Signal A: animation event dalam 0.15s (window ketat)
-        --   Signal B: killer approach velocity > 8 studs/sec (lunge bukan walk)
-        -- BOTH harus true biar fire (hindari false positive walk anim)
+        -- ATTACK DETECTION (stand-and-hit game, BUKAN lunge):
+        --   Signal A: killer baru play animation (AnimationPlayed event dalam parryAnimWindow)
+        --   Signal B: killer LookVector hadap survivor (dot > parryFacingDot)
+        -- Velocity di-DROP karena killer stand-and-swing tanpa closing speed.
         local nowT = tick()
-        local animFresh = (nowT - killerLastAnimTime) < 0.15
-        -- Velocity: track dist 0.15s ago
-        table.insert(killerDistHistory, {t=nowT, d=kd})
-        while #killerDistHistory > 0 and killerDistHistory[1].t < nowT - 0.5 do
-            table.remove(killerDistHistory, 1)
+        local animFresh = (nowT - killerLastAnimTime) < CFG.parryAnimWindow
+        -- Facing dot: 1.0 = killer hadap persis ke gw; 0 = sudut 90°; <0 = mbelakang
+        local toMe = (myRoot.Position - killerHRP.Position)
+        local toMeFlat = Vector3.new(toMe.X, 0, toMe.Z)
+        local mag = toMeFlat.Magnitude
+        local facingDot = 0
+        if mag > 0.1 then
+            local killerLook = killerHRP.CFrame.LookVector
+            local lookFlat = Vector3.new(killerLook.X, 0, killerLook.Z).Unit
+            facingDot = lookFlat:Dot(toMeFlat / mag)
         end
-        local closingSpeed = 0
-        if #killerDistHistory >= 3 then
-            local oldest = killerDistHistory[1]
-            local dt = nowT - oldest.t
-            if dt > 0.05 then
-                closingSpeed = (oldest.d - kd) / dt  -- positive = closing
-            end
-        end
-        local lungeFresh = closingSpeed > 8  -- lunge speed (walk biasa <4)
-        if not (animFresh and lungeFresh) then
+        local facingMe = facingDot > CFG.parryFacingDot
+        if not (animFresh and facingMe) then
             dbgParry("dist=" .. string.format("%.1f", kd)
                 .. " anim=" .. tostring(animFresh)
-                .. " lunge=" .. string.format("%.1f", closingSpeed) .. "s/s — hold")
+                .. " face=" .. string.format("%.2f", facingDot) .. " (need>" .. CFG.parryFacingDot .. ")")
             continue
         end
         lastLogReason = ""
 
-        -- FIRE RMB click — multi-fallback (Solara mouse2click > VIM > raw)
+        -- FIRE RMB HOLD — multi-fallback (Solara press/release > VIM hold)
+        -- HOLD selama parryHoldDuration biar cover swing→impact (parry window 800ms)
         lastParryFire = now
-        dbgParry("FIRE → killer dist=" .. string.format("%.1f", kd))
-        local fired = false
-        -- Method 1: Solara executor mouse2click (paling reliable buat game yang block VIM)
+        dbgParry("FIRE HOLD " .. string.format("%.0f", CFG.parryHoldDuration * 1000) .. "ms → kd="
+            .. string.format("%.1f", kd) .. " face=" .. string.format("%.2f", facingDot))
         local _m2c   = rawget(getfenv(), "mouse2click")
         local _m2p   = rawget(getfenv(), "mouse2press")
         local _m2r   = rawget(getfenv(), "mouse2release")
-        if _m2c then
-            pcall(_m2c)
-            fired = true
-        elseif _m2p and _m2r then
+        local heldVia = nil
+        -- Method 1: Solara press/release (paling reliable buat hold)
+        if _m2p and _m2r then
             pcall(_m2p)
-            task.wait(0.04)
-            pcall(_m2r)
-            fired = true
+            heldVia = "solara-press"
         end
-        -- Method 2: VirtualInputManager (fallback)
-        if not fired then
-            pcall(function()
-                VIM:SendMouseButtonEvent(0, 0, 1, true,  game, 0)
-                task.wait(0.04)
-                VIM:SendMouseButtonEvent(0, 0, 1, false, game, 0)
-            end)
+        -- Method 2: VIM hold (fallback kalau press/release ga ada)
+        if not heldVia then
+            pcall(function() VIM:SendMouseButtonEvent(0, 0, 1, true, game, 0) end)
+            heldVia = "vim-hold"
         end
+        -- Spawn async release biar loop tetep bisa monitor
+        task.spawn(function()
+            task.wait(CFG.parryHoldDuration)
+            if heldVia == "solara-press" and _m2r then
+                pcall(_m2r)
+            else
+                pcall(function() VIM:SendMouseButtonEvent(0, 0, 1, false, game, 0) end)
+            end
+            -- Backup click via Solara mouse2click kalau press/release ga jalan
+            if heldVia == "vim-hold" and _m2c then pcall(_m2c) end
+        end)
     end
 end)
 
@@ -2313,9 +2334,46 @@ SG.Name           = "ArtheirsScript"
 SG.ResetOnSpawn   = false
 SG.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 SG.IgnoreGuiInset = true
-pcall(function() SG.Parent = game:GetService("CoreGui") end)
-if not SG.Parent or not SG.Parent:IsA("CoreGui") then
-    SG.Parent = LP.PlayerGui
+-- ── Streamproof parent chain (toggleable via Misc tab) ────────
+-- Function exposed via CFG._applyStreamproof biar checkbox di Misc bisa re-apply tanpa
+-- nambah top-level local (script main chunk udah deket Luau 200-register limit).
+do
+    local function applyStreamproof()
+        local parented = false
+        if CFG.streamproofEnabled then
+            -- 1) gethui() — Solara/most executors, container Roblox WDA_EXCLUDEFROMCAPTURE
+            if typeof(gethui) == "function" then
+                local ok, hui = pcall(gethui)
+                if ok and hui then
+                    local ok2 = pcall(function() SG.Parent = hui end)
+                    if ok2 and SG.Parent == hui then parented = true end
+                end
+            end
+            -- 2) syn.protect_gui — Synapse-style fallback
+            if not parented and syn and typeof(syn.protect_gui) == "function" then
+                pcall(function() syn.protect_gui(SG) end)
+                pcall(function() SG.Parent = game:GetService("CoreGui") end)
+                if SG.Parent and SG.Parent:IsA("CoreGui") then parented = true end
+            end
+            -- 3) protect_gui global (beberapa executor)
+            if not parented and typeof(protect_gui) == "function" then
+                pcall(function() protect_gui(SG) end)
+                pcall(function() SG.Parent = game:GetService("CoreGui") end)
+                if SG.Parent and SG.Parent:IsA("CoreGui") then parented = true end
+            end
+        end
+        -- OFF, atau semua streamproof method gagal → CoreGui plain (keliatan saat record)
+        if not parented then
+            pcall(function() SG.Parent = game:GetService("CoreGui") end)
+            if SG.Parent and SG.Parent:IsA("CoreGui") then parented = true end
+        end
+        -- Last resort
+        if not parented then
+            SG.Parent = LP.PlayerGui
+        end
+    end
+    CFG._applyStreamproof = applyStreamproof  -- expose ke Misc tab toggle
+    applyStreamproof()
 end
 
 -- ── Main Panel ──────────────────────────────────────────────
@@ -4242,12 +4300,45 @@ do
     checkboxUpdaters.noclip = u
 end
 
-makeSectionHeader(mTab, 422, "TELEPORT TO PLAYER")
+makeSectionHeader(mTab, 422, "CAMERA")
+do
+    local _, fovSlider = makeSlider(mTab, 460, "Field of View", CFG.fovMin, CFG.fovMax, CFG.fovStep,
+        function() return CFG.fovValue end,
+        function(v)
+            CFG.fovValue = v
+            pcall(function()
+                local cam = workspace.CurrentCamera
+                if cam then cam.FieldOfView = v end
+            end)
+        end)
+    sliderUpdaters.fov = fovSlider
+
+    -- Hold FOV terhadap game-side overrides; idle saat user pakai default
+    RunService.RenderStepped:Connect(function()
+        if CFG.fovValue == CFG.fovDefault then return end
+        local cam = workspace.CurrentCamera
+        if cam and math.abs(cam.FieldOfView - CFG.fovValue) > 0.05 then
+            pcall(function() cam.FieldOfView = CFG.fovValue end)
+        end
+    end)
+end
+
+makeSectionHeader(mTab, 524, "PRIVACY")
+do
+    local _, u = makeCheckboxFor(mTab, 562, "Streamproof (invisible saat record)", "streamproofEnabled",
+        function()
+            CFG.streamproofEnabled = not CFG.streamproofEnabled
+            if CFG._applyStreamproof then pcall(CFG._applyStreamproof) end
+        end)
+    checkboxUpdaters.streamproof = u
+end
+
+makeSectionHeader(mTab, 626, "TELEPORT TO PLAYER")
 
 -- Container untuk player list (di-refresh saat player join/leave atau switchTab)
 local tpContainer = Instance.new("Frame")
 tpContainer.Size                  = UDim2.new(1, 0, 0, 240)
-tpContainer.Position              = UDim2.new(0, 0, 0, 460)
+tpContainer.Position              = UDim2.new(0, 0, 0, 664)
 tpContainer.BackgroundTransparency= 1
 tpContainer.Parent                = mTab
 
