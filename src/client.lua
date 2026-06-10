@@ -143,6 +143,12 @@ local CFG = {
     autoRepairRange   = 18,    -- jarak max ke generator (studs) buat hold mouse
     autoRepairTick    = 0.1,   -- interval cek (detik) — lebih responsive saat pindah gen
 
+    -- No Skill Check (auto-tap Space saat SkillCheckPromptGui.Check Visible)
+    -- Probe: GREAT zone hit ~0.82-0.88s after appearance → buff repairboost=1.03, skillcheckspeed=0.95
+    noSkillCheckEnabled = false,
+    skillCheckDelay     = 0.85,   -- detik, target GREAT/PERFECT zone
+    skillCheckJitter    = 0.08,   -- ±jitter biar ga robotic
+
     -- Auto Escape (TP otomatis pas killer dekat saat lagi repair)
     autoEscapeEnabled = false,
     escapeDistance    = 40,    -- studs, killer dianggap "bahaya"
@@ -1056,6 +1062,45 @@ end)
 LP.CharacterAdded:Connect(function()
     arHolding    = false
     arCurrentGen = nil
+end)
+
+-- ── No Skill Check ─────────────────────────────────────────
+-- Probe finding (2026-06-10): PlayerGui.SkillCheckPromptGui.Check Frame Visible→true
+-- saat skill check muncul. User press Space ~0.82-0.88s pasca-appear → GREAT zone
+-- buff (repairboost=1.03, skillcheckspeed=0.95). Auto-tap dengan timing sama.
+task.spawn(function()
+    local PG = LP:WaitForChild("PlayerGui", 30)
+    if not PG then return end
+    local promptGui = PG:WaitForChild("SkillCheckPromptGui", 60)
+    if not promptGui then return end
+    local checkFrame = promptGui:WaitForChild("Check", 30)
+    if not checkFrame then return end
+
+    -- Anti-double-fire flag (Visible bisa flip beberapa kali per check)
+    local firingForThisCheck = false
+
+    checkFrame:GetPropertyChangedSignal("Visible"):Connect(function()
+        if not checkFrame.Visible then
+            firingForThisCheck = false
+            return
+        end
+        if not CFG.noSkillCheckEnabled then return end
+        if getRole() ~= "Survivor" then return end
+        if firingForThisCheck then return end
+        firingForThisCheck = true
+
+        -- Delay sampe needle masuk GREAT zone, ±jitter biar look natural
+        local delay = CFG.skillCheckDelay + (math.random() * 2 - 1) * CFG.skillCheckJitter
+        task.delay(delay, function()
+            -- Re-check: still visible + toggle masih ON
+            if not checkFrame.Visible then return end
+            if not CFG.noSkillCheckEnabled then return end
+            if getRole() ~= "Survivor" then return end
+            VIM:SendKeyEvent(true,  Enum.KeyCode.Space, false, game)
+            task.wait(0.04)
+            VIM:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+        end)
+    end)
 end)
 
 -- ── Auto Escape ────────────────────────────────────────────
@@ -4176,36 +4221,41 @@ do
     checkboxUpdaters.autoRepair = u
 end
 do
-    local _, u = makeCheckboxFor(sTab, 92, "Auto Escape (when killer near)", "autoEscapeEnabled", toggleAutoEscape)
+    local _, u = makeCheckboxFor(sTab, 92, "No Skill Check (auto-tap Space GREAT zone)", "noSkillCheckEnabled",
+        function() CFG.noSkillCheckEnabled = not CFG.noSkillCheckEnabled end)
+    checkboxUpdaters.noSkillCheck = u
+end
+do
+    local _, u = makeCheckboxFor(sTab, 146, "Auto Escape (when killer near)", "autoEscapeEnabled", toggleAutoEscape)
     checkboxUpdaters.autoEscape = u
 end
 
-makeSectionHeader(sTab, 158, "RESCUE & HEAL")
+makeSectionHeader(sTab, 212, "RESCUE & HEAL")
 do
-    local _, u = makeCheckboxFor(sTab, 196, "Auto Rescue Hooked Teammate", "autoRescueEnabled",
+    local _, u = makeCheckboxFor(sTab, 250, "Auto Rescue Hooked Teammate", "autoRescueEnabled",
         function() CFG.autoRescueEnabled = not CFG.autoRescueEnabled end)
     checkboxUpdaters.autoRescue = u
 end
 do
-    local _, u = makeCheckboxFor(sTab, 250, "Auto Heal (self & team)", "autoHealEnabled",
+    local _, u = makeCheckboxFor(sTab, 304, "Auto Heal (self & team)", "autoHealEnabled",
         function() CFG.autoHealEnabled = not CFG.autoHealEnabled end)
     checkboxUpdaters.autoHeal = u
 end
 do
-    local _, u = makeCheckboxFor(sTab, 304, "Auto Unhook Self", "autoUnhookEnabled",
+    local _, u = makeCheckboxFor(sTab, 358, "Auto Unhook Self", "autoUnhookEnabled",
         function() CFG.autoUnhookEnabled = not CFG.autoUnhookEnabled end)
     checkboxUpdaters.autoUnhook = u
 end
 do
-    local _, u = makeCheckboxFor(sTab, 358, "Auto Parry (weapon RMB)", "autoParryEnabled",
+    local _, u = makeCheckboxFor(sTab, 412, "Auto Parry (weapon RMB)", "autoParryEnabled",
         function() CFG.autoParryEnabled = not CFG.autoParryEnabled end)
     checkboxUpdaters.autoParry = u
 end
 
-makeSectionHeader(sTab, 422, "ROLE")
+makeSectionHeader(sTab, 476, "ROLE")
 local roleLbl = Instance.new("TextLabel")
 roleLbl.Size                   = UDim2.new(1, 0, 0, 18)
-roleLbl.Position               = UDim2.new(0, 0, 0, 460)
+roleLbl.Position               = UDim2.new(0, 0, 0, 514)
 roleLbl.BackgroundTransparency = 1
 roleLbl.Text                   = "Current: " .. (CFG.roleOverride and ("Manual " .. CFG.manualRole) or ("Auto " .. roleCache))
 roleLbl.TextColor3             = T.textPri
