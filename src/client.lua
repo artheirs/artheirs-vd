@@ -143,11 +143,9 @@ local CFG = {
     autoRepairRange   = 18,    -- jarak max ke generator (studs) buat hold mouse
     autoRepairTick    = 0.1,   -- interval cek (detik) — lebih responsive saat pindah gen
 
-    -- No Skill Check (auto-tap Space saat SkillCheckPromptGui.Check Visible)
-    -- Probe: GREAT zone hit ~0.82-0.88s after appearance → buff repairboost=1.03, skillcheckspeed=0.95
+    -- No Skill Check — needle-tracking (probe v2): fire Space saat Line.Rotation
+    -- mencapai Goal.Rotation + ~100°. Hit → buff repairboost=1.03 + skillcheckspeed=0.95.
     noSkillCheckEnabled = false,
-    skillCheckDelay     = 0.85,   -- detik, target GREAT/PERFECT zone
-    skillCheckJitter    = 0.08,   -- ±jitter biar ga robotic
 
     -- Auto Escape (TP otomatis pas killer dekat saat lagi repair)
     autoEscapeEnabled = false,
@@ -1064,15 +1062,31 @@ LP.CharacterAdded:Connect(function()
     arCurrentGen = nil
 end)
 
--- ── No Skill Check (defensive re-implementation 2026-06-10) ────────
--- Probe finding: PlayerGui.SkillCheckPromptGui.Check Frame Visible→true saat check.
--- Defensive vs sebelumnya:
---   • Inline do-block, no task.spawn yang yield di init
---   • FindFirstChild + DescendantAdded fallback (no chained WaitForChild)
---   • pcall wrap semua signal/API call
+-- ── No Skill Check [Needle-tracking, probe v2 derived 2026-06-11]
+-- Strategy: monitor Line.Rotation per frame, fire Space saat Line ≈ Goal + OFFSET.
+-- Probe v2 confirmed HIT: Line.Rotation - Goal.Rotation = 103° dan 115° (2 sample).
+-- Target offset 100° = slightly early biar compensate input + network lag.
+-- Line freezes saat Space ditekan (confirmed di probe semua 7 check), jadi game
+-- pasti detect press — tinggal timing yang harus tepat.
 do
     local firingForCheck = false
     local attachedFrame  = nil
+
+    local OFFSET_TARGET  = 100   -- fire saat (Line.Rotation - Goal.Rotation) >= ini
+    local CHECK_TIMEOUT  = 1.5   -- safety timeout per visible check
+
+    -- Multi-backend input: keypress (Xeno/Solara global) + VIM SendKeyEvent.
+    -- Dua-duanya difire bareng buat redundancy.
+    local _keypress   = rawget(getfenv(), "keypress")   or keypress
+    local _keyrelease = rawget(getfenv(), "keyrelease") or keyrelease
+
+    local function pressSpace()
+        if _keypress then pcall(_keypress, 0x20) end  -- VK_SPACE
+        pcall(function() VIM:SendKeyEvent(true,  Enum.KeyCode.Space, false, game) end)
+        task.wait(0.02)
+        if _keyrelease then pcall(_keyrelease, 0x20) end
+        pcall(function() VIM:SendKeyEvent(false, Enum.KeyCode.Space, false, game) end)
+    end
 
     local function attachListener(frame)
         if attachedFrame == frame then return end
@@ -1088,29 +1102,52 @@ do
                 if firingForCheck then return end
                 firingForCheck = true
 
-                -- INSTANT fire — no delay. Suppress jump physics biar ga lift off gen.
-                local char = LP.Character
-                local hum  = char and char:FindFirstChildOfClass("Humanoid")
-                local savedJP, savedJH
-                if hum then
-                    savedJP = hum.JumpPower
-                    savedJH = hum.JumpHeight
-                    pcall(function() hum.JumpPower = 0 end)
-                    pcall(function() hum.JumpHeight = 0 end)
+                local goal = frame:FindFirstChild("Goal")
+                local line = frame:FindFirstChild("Line")
+                if not (goal and line) then
+                    firingForCheck = false
+                    return
                 end
-                pcall(function()
-                    VIM:SendKeyEvent(true,  Enum.KeyCode.Space, false, game)
-                    task.wait(0.03)
-                    VIM:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+
+                task.spawn(function()
+                    local startT  = tick()
+                    local goalRot = goal.Rotation
+                    local target  = goalRot + OFFSET_TARGET
+                    local pressed = false
+
+                    -- Suppress jump physics selama tracking — Space ga lift off gen
+                    local char = LP.Character
+                    local hum  = char and char:FindFirstChildOfClass("Humanoid")
+                    local savedJP, savedJH
+                    if hum then
+                        savedJP = hum.JumpPower
+                        savedJH = hum.JumpHeight
+                        pcall(function() hum.JumpPower  = 0 end)
+                        pcall(function() hum.JumpHeight = 0 end)
+                    end
+
+                    while frame.Visible and not pressed do
+                        if tick() - startT > CHECK_TIMEOUT then break end
+                        local lineRot = line.Rotation
+                        if lineRot >= target then
+                            pressSpace()
+                            pressed = true
+                            break
+                        end
+                        RunService.Heartbeat:Wait()
+                    end
+
+                    -- Restore jump physics sedikit delay biar press selesai diproses
+                    task.wait(0.1)
+                    if hum then
+                        pcall(function() hum.JumpPower  = savedJP end)
+                        pcall(function() hum.JumpHeight = savedJH end)
+                    end
+                    firingForCheck = false
                 end)
-                if hum then
-                    task.wait(0.08)
-                    pcall(function() hum.JumpPower  = savedJP end)
-                    pcall(function() hum.JumpHeight = savedJH end)
-                end
             end)
         end)
-        if not ok then attachedFrame = nil end  -- biar bisa retry next discovery
+        if not ok then attachedFrame = nil end  -- retry on next discovery
     end
 
     local function tryFind()
@@ -1122,10 +1159,8 @@ do
         if frame then attachListener(frame) end
     end
 
-    -- Coba immediate (kalau GUI udah ada di lobby)
     pcall(tryFind)
 
-    -- Fallback: late-spawn watcher via PlayerGui.DescendantAdded
     pcall(function()
         local PG = LP:FindFirstChild("PlayerGui")
         if not PG then return end
