@@ -179,16 +179,17 @@ local CFG = {
     unhookTick        = 0.15,
 
     -- Auto Parry (saat killer attack lo dekat, equip Parry Dagger)
-    -- Parry window game = 800ms; cooldown 0.9s antara fire biar window cycle bersih
-    -- Detection: killer-anim-fresh + killer-facing-me (stand-and-hit style, BUKAN lunge)
-    autoParryEnabled  = false,
-    parryRange        = 9,      -- killer dist <= ini → kandidat fire (attack reach ~7-8 studs)
-    parryCooldown     = 62,     -- game cd: 60s fail / 90s success → 62s safe minimum
-    parryTick         = 0.04,
-    parryFacingDot    = 0.5,    -- killer.LookVector dot (me-killer).Unit > ini → facing me (cone ~60°)
-    parryHoldDuration = 0.55,   -- hold RMB selama ini (cover full parry window 800ms - reaction lag)
-    parryAnimWindow   = 0.18,   -- anim event harus dalam window ini (ms ke arah swing-impact)
-    parryDebug        = true,   -- print [PARRY] log ke console F9 buat debug
+    -- Game parry window = 800ms; game cooldown 60s fail / 90s success
+    -- HYBRID detection: pre-emptive (close+facing) + reactive (anim-event backup)
+    autoParryEnabled       = false,
+    parryRange             = 9,     -- max range buat reactive trigger
+    parryPreemptiveRange   = 6.5,   -- close range = pre-emptive fire (killer prep swing)
+    parryCooldown          = 62,    -- game cd: 60s fail / 90s success
+    parryTick              = 0.04,
+    parryFacingDot         = 0.5,   -- reactive: cone ~60°
+    parryFacingDotPreempt  = 0.65,  -- preemptive: cone tighter ~50° (more confident)
+    parryAnimWindow        = 0.2,   -- anim event window
+    parryDebug             = true,
 
     -- KILLER FEATURES ────────────────────────────────────
     -- Auto-Attack M1 (saat survivor melee range + facing)
@@ -1635,10 +1636,11 @@ task.spawn(function()
             if kd < 15 then dbgParry("killer dist=" .. string.format("%.1f", kd) .. " (range=" .. CFG.parryRange .. ")") end
             continue
         end
-        -- ATTACK DETECTION (stand-and-hit game, BUKAN lunge):
-        --   Signal A: killer baru play animation (AnimationPlayed event dalam parryAnimWindow)
-        --   Signal B: killer LookVector hadap survivor (dot > parryFacingDot)
-        -- Velocity di-DROP karena killer stand-and-swing tanpa closing speed.
+        -- HYBRID DETECTION (game cd 60-90s, harus tepat di 1 fire):
+        --   TIER 1 PREEMPTIVE: killer ≤ 6.5 studs + facing tight (>0.65)
+        --                      → fire SEBELUM swing impact, parry window terbuka duluan
+        --   TIER 2 REACTIVE  : range ≤ 9 + AnimationPlayed fresh + facing (>0.5)
+        --                      → fallback buat fast attacks
         local nowT = tick()
         local animFresh = (nowT - killerLastAnimTime) < CFG.parryAnimWindow
         -- Facing dot: 1.0 = killer hadap persis ke gw; 0 = sudut 90°; <0 = mbelakang
@@ -1651,11 +1653,15 @@ task.spawn(function()
             local lookFlat = Vector3.new(killerLook.X, 0, killerLook.Z).Unit
             facingDot = lookFlat:Dot(toMeFlat / mag)
         end
-        local facingMe = facingDot > CFG.parryFacingDot
-        if not (animFresh and facingMe) then
+        local preempt = (kd <= CFG.parryPreemptiveRange) and (facingDot > CFG.parryFacingDotPreempt)
+        local reactive = animFresh and (facingDot > CFG.parryFacingDot)
+        local fireMode = preempt and "PREEMPT" or (reactive and "REACT" or nil)
+        if not fireMode then
             dbgParry("dist=" .. string.format("%.1f", kd)
                 .. " anim=" .. tostring(animFresh)
-                .. " face=" .. string.format("%.2f", facingDot) .. " (need>" .. CFG.parryFacingDot .. ")")
+                .. " face=" .. string.format("%.2f", facingDot)
+                .. " (preempt-need: kd≤" .. CFG.parryPreemptiveRange .. " face>" .. CFG.parryFacingDotPreempt
+                .. " | react-need: anim+face>" .. CFG.parryFacingDot .. ")")
             continue
         end
         lastLogReason = ""
@@ -1663,7 +1669,7 @@ task.spawn(function()
         -- FIRE RMB CLICK (instant, bukan hold — game treat parry sbg single-shot reactive action)
         -- Previous session evidence: click DID trigger parry. Hold malah breakin input.
         lastParryFire = now
-        dbgParry("FIRE CLICK → kd=" .. string.format("%.1f", kd)
+        dbgParry("FIRE [" .. fireMode .. "] → kd=" .. string.format("%.1f", kd)
             .. " face=" .. string.format("%.2f", facingDot))
         local _m2c   = rawget(getfenv(), "mouse2click")
         local _m2p   = rawget(getfenv(), "mouse2press")
