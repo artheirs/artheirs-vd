@@ -183,7 +183,7 @@ local CFG = {
     -- HYBRID detection: pre-emptive (close+facing) + reactive (anim-event backup)
     autoParryEnabled       = false,
     parryRange             = 9,     -- range relaxed lagi (whitelist anim ID udah selektif)
-    parryCooldown          = 0.15,  -- SHIELD MODE: spam click tiap 150ms, gak respect game cd
+    parryCooldown          = 2,     -- REACT mode: 2s cooldown (allow retry per encounter, no spam)
     parryTick              = 0.04,
     parryFacingDot         = 0.5,   -- relaxed (anim ID whitelist udah very selective)
     parryAnimWindow        = 0.3,   -- catch wind-up + react time
@@ -1714,14 +1714,10 @@ task.spawn(function()
         -- Killer velocity (flat, abaikan jatuh/lompat)
         local kvel = killerHRP.AssemblyLinearVelocity
         local kspeedFlat = math.sqrt(kvel.X * kvel.X + kvel.Z * kvel.Z)
-        -- SHIELD MODE — fire continuous saat killer close+facing, abaikan anim event.
-        -- Hipotesis: game cooldown cuma trigger saat parry SUKSES match attack window,
-        -- click di luar window = no-op. Universal across semua killer, gak butuh anim ID.
-        -- Risk: kalo each click consume cooldown = useless dalam 1 second.
-        local shieldDetect = (kd <= 6) and (facingDot > 0.6)
-        local dashDetect = (kspeedFlat > 8) and (kd <= 5) and (facingDot > 0.85)
+        -- REACT-ONLY (universal): anim watcher udah filter Action priority + kd ≤ 5 at anim moment.
+        -- Fire SEKALI per swing event, bukan spam. Timing precise, no false positive saat camp/chase.
         local animDetect = animFresh and (facingDot > CFG.parryFacingDot)
-        local fireMode = shieldDetect and "SHIELD" or (animDetect and "REACT" or (dashDetect and "DASH" or nil))
+        local fireMode = animDetect and "REACT" or nil
         if not fireMode then
             dbgParry("dist=" .. string.format("%.1f", kd)
                 .. " spd=" .. string.format("%.1f", kspeedFlat)
