@@ -313,6 +313,22 @@ do
     local UIS = game:GetService("UserInputService")
     UIS.InputBegan:Connect(function(input, gpe)
         if gpe then return end
+        -- F9 = save log (alternative ke /probe save kalo akun gak bisa chat)
+        if input.KeyCode == Enum.KeyCode.F9 then
+            local content = table.concat(LOG, "\n")
+            local saved = false
+            if writefile then
+                pcall(function()
+                    writefile("Artheirs_VD_Survivor_Probe.log", content)
+                    saved = true
+                end)
+            end
+            if setclipboard then pcall(function() setclipboard(content) end) end
+            log("SAVE", "via=F9", "lines=" .. #LOG, "file=" .. (saved and "OK" or "FAIL"))
+            print("[VD-PROBE-S] === LOG SAVED VIA F9 ===")
+            print("[VD-PROBE-S] File:", saved and "workspace/Artheirs_VD_Survivor_Probe.log" or "writefile unavailable")
+            return
+        end
         if input.KeyCode == Enum.KeyCode.F8 then
             local myRoot = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
             local bestD, bestName = 999, "none"
