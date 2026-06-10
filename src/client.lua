@@ -1064,42 +1064,69 @@ LP.CharacterAdded:Connect(function()
     arCurrentGen = nil
 end)
 
--- ── No Skill Check ─────────────────────────────────────────
--- [DISABLED 2026-06-10 — bisect crash investigation; re-enable setelah confirm safe]
--- Probe finding: PlayerGui.SkillCheckPromptGui.Check Frame Visible→true saat skill check.
---[[
-task.spawn(function()
-    local PG = LP:WaitForChild("PlayerGui", 30)
-    if not PG then return end
-    local promptGui = PG:WaitForChild("SkillCheckPromptGui", 60)
-    if not promptGui then return end
-    local checkFrame = promptGui:WaitForChild("Check", 30)
-    if not checkFrame then return end
+-- ── No Skill Check (defensive re-implementation 2026-06-10) ────────
+-- Probe finding: PlayerGui.SkillCheckPromptGui.Check Frame Visible→true saat check.
+-- Defensive vs sebelumnya:
+--   • Inline do-block, no task.spawn yang yield di init
+--   • FindFirstChild + DescendantAdded fallback (no chained WaitForChild)
+--   • pcall wrap semua signal/API call
+do
+    local firingForCheck = false
+    local attachedFrame  = nil
 
-    local firingForThisCheck = false
+    local function attachListener(frame)
+        if attachedFrame == frame then return end
+        attachedFrame = frame
+        local ok = pcall(function()
+            frame:GetPropertyChangedSignal("Visible"):Connect(function()
+                if not frame.Visible then
+                    firingForCheck = false
+                    return
+                end
+                if not CFG.noSkillCheckEnabled then return end
+                if getRole() ~= "Survivor" then return end
+                if firingForCheck then return end
+                firingForCheck = true
 
-    checkFrame:GetPropertyChangedSignal("Visible"):Connect(function()
-        if not checkFrame.Visible then
-            firingForThisCheck = false
-            return
-        end
-        if not CFG.noSkillCheckEnabled then return end
-        if getRole() ~= "Survivor" then return end
-        if firingForThisCheck then return end
-        firingForThisCheck = true
+                local d = CFG.skillCheckDelay + (math.random() * 2 - 1) * CFG.skillCheckJitter
+                task.delay(d, function()
+                    if not frame.Visible then return end
+                    if not CFG.noSkillCheckEnabled then return end
+                    if getRole() ~= "Survivor" then return end
+                    pcall(function()
+                        VIM:SendKeyEvent(true,  Enum.KeyCode.Space, false, game)
+                        task.wait(0.04)
+                        VIM:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+                    end)
+                end)
+            end)
+        end)
+        if not ok then attachedFrame = nil end  -- biar bisa retry next discovery
+    end
 
-        local delay = CFG.skillCheckDelay + (math.random() * 2 - 1) * CFG.skillCheckJitter
-        task.delay(delay, function()
-            if not checkFrame.Visible then return end
-            if not CFG.noSkillCheckEnabled then return end
-            if getRole() ~= "Survivor" then return end
-            VIM:SendKeyEvent(true,  Enum.KeyCode.Space, false, game)
-            task.wait(0.04)
-            VIM:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+    local function tryFind()
+        local PG = LP:FindFirstChild("PlayerGui")
+        if not PG then return end
+        local promptGui = PG:FindFirstChild("SkillCheckPromptGui")
+        if not promptGui then return end
+        local frame = promptGui:FindFirstChild("Check")
+        if frame then attachListener(frame) end
+    end
+
+    -- Coba immediate (kalau GUI udah ada di lobby)
+    pcall(tryFind)
+
+    -- Fallback: late-spawn watcher via PlayerGui.DescendantAdded
+    pcall(function()
+        local PG = LP:FindFirstChild("PlayerGui")
+        if not PG then return end
+        PG.DescendantAdded:Connect(function(d)
+            if d.Name == "Check" and d.Parent and d.Parent.Name == "SkillCheckPromptGui" then
+                attachListener(d)
+            end
         end)
     end)
-end)
---]]
+end
 
 -- ── Auto Escape ────────────────────────────────────────────
 -- Pas Survivor deket gen, kalau killer mendekat (< escapeDistance studs)
@@ -4263,7 +4290,7 @@ roleLbl.Parent                 = sTab
 local function makeRoleBtn(text, posX, color, onClick)
     local b = Instance.new("TextButton")
     b.Size              = UDim2.new(0, 88, 0, 34)
-    b.Position          = UDim2.new(0, posX, 0, 492)
+    b.Position          = UDim2.new(0, posX, 0, 546)
     b.BackgroundColor3  = T.btnBase
     b.BorderSizePixel   = 0
     b.Text              = text
