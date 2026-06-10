@@ -182,11 +182,18 @@ local CFG = {
     -- Game parry window = 800ms; game cooldown 60s fail / 90s success
     -- HYBRID detection: pre-emptive (close+facing) + reactive (anim-event backup)
     autoParryEnabled       = false,
-    parryRange             = 6.5,   -- TIGHT: hanya fire kalau killer in actual swing reach (~7 studs)
+    parryRange             = 9,     -- range relaxed lagi (whitelist anim ID udah selektif)
     parryCooldown          = 62,    -- game cd: 60s fail / 90s success
     parryTick              = 0.04,
-    parryFacingDot         = 0.6,   -- killer facing me >0.6 (cone ~53°, lebih confident)
-    parryAnimWindow        = 0.25,  -- anim event window (sedikit lebih lebar buat catch wind-up)
+    parryFacingDot         = 0.5,   -- relaxed (anim ID whitelist udah very selective)
+    parryAnimWindow        = 0.3,   -- catch wind-up + react time
+    -- Whitelist anim IDs dari probe (CanhKhietjztbZN killer combo).
+    -- Wind-up anim — Action priority, len 1.50s — fire pertama di combo, 200-400ms before impact.
+    parryWindupAnimIds = {
+        ["135002183282873"] = true,  -- combo A wind-up (Action, 1.50s)
+        ["111223305405046"] = true,  -- combo B wind-up (Action3, 2.82s, ranged variant)
+        ["137504605181913"] = true,  -- close-range slam (Action, 3.75s)
+    },
     parryDebug             = true,
 
     -- KILLER FEATURES ────────────────────────────────────
@@ -1598,13 +1605,13 @@ local function attachKillerAnimWatcher(p)
         hum.AnimationPlayed:Connect(function(track)
             local team = p.Team and p.Team.Name or ""
             if not team:lower():find("killer") then return end
-            -- Filter priority — drop Movement/Idle, keep Action/Action4/Action2/Action3
-            local prio = track and track.Priority
-            if prio == Enum.AnimationPriority.Idle
-            or prio == Enum.AnimationPriority.Movement
-            or prio == Enum.AnimationPriority.Core then
-                return  -- skip non-attack anims
-            end
+            -- WHITELIST anim ID — fire HANYA kalau ID match wind-up swing yang udah di-probe.
+            -- Format AnimationId: "rbxassetid://NUMBER" → ekstrak NUMBER aja.
+            local anim = track and track.Animation
+            if not anim then return end
+            local id = (anim.AnimationId or ""):match("(%d+)")
+            if not id then return end
+            if not CFG.parryWindupAnimIds[id] then return end  -- bukan wind-up, ignore
             killerLastAnimTime = tick()
         end)
     end
