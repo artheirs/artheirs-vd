@@ -190,9 +190,25 @@ local CFG = {
     -- Whitelist anim IDs dari probe (CanhKhietjztbZN killer combo).
     -- Wind-up anim — Action priority, len 1.50s — fire pertama di combo, 200-400ms before impact.
     parryWindupAnimIds = {
-        ["135002183282873"] = true,  -- combo A wind-up (Action, 1.50s)
-        ["111223305405046"] = true,  -- combo B wind-up (Action3, 2.82s, ranged variant)
-        ["137504605181913"] = true,  -- close-range slam (Action, 3.75s)
+        -- TheCure killer (probe 1 = CanhKhietjztbZN player) + probe 5 (re-confirmed)
+        ["135002183282873"] = true,  -- wind-up (Action, ~530ms before impact)
+        ["121216847022485"] = true,  -- strike (Action2)
+        ["137795837089724"] = true,  -- recovery (Action3)
+        -- TheCure secondary attacks (dari probe 1)
+        ["111223305405046"] = true,  -- combo B wind-up
+        ["137504605181913"] = true,  -- close-range slam
+        -- TheAbysswalker killer (probe 2) — confirmed via 2 HIT-MARKER timing match
+        ["118907603246885"] = true,  -- wind-up (~500ms before impact, paling early)
+        ["78432063483146"]  = true,  -- strike
+        ["126626340093785"] = true,  -- impact/follow-through
+        -- TheVeil killer (probe 3) — confirmed via 2 HIT-MARKER timing match
+        ["122812055447896"] = true,  -- wind-up (~360ms before impact)
+        ["78935059863801"]  = true,  -- strike
+        ["119752564209631"] = true,  -- impact/follow-through
+        -- TheSlasher killer (probe 4) — confirmed via 2 HIT-MARKER timing match
+        ["110355011987939"] = true,  -- wind-up (~400ms before impact)
+        ["139369275981139"] = true,  -- strike
+        ["121571390309073"] = true,  -- impact/follow-through
     },
     parryDebug             = true,
 
@@ -1672,12 +1688,16 @@ task.spawn(function()
             if kd < 15 then dbgParry("killer dist=" .. string.format("%.1f", kd) .. " (range=" .. CFG.parryRange .. ")") end
             continue
         end
-        -- REACTIVE DETECTION ONLY (preempt dropped — too many false positives saat killer chase/lewat):
-        --   Fire if: AnimationPlayed fresh in window (swing prep) + killer facing me (dot > threshold)
-        -- Trade-off: kadang lambat di fast attack, tapi gak waste 60s game cooldown di non-attack.
+        -- 2-TIER DETECTION:
+        --   TIER 1 STOP-DETECT: killer velocity < 3 studs/s (berhenti buat swing)
+        --                       + kd ≤ 5.5 (in swing reach) + facing > 0.7 (hadap directly)
+        --                       → fire pre-emptive saat killer STOP. Killer stand-and-hit selalu
+        --                       berhenti sebelum swing — catch the STOP, parry window terbuka sebelum impact.
+        --   TIER 2 ANIM: AnimationPlayed fresh + facing > 0.5 (whitelist/fallback dari watcher)
+        --                → fallback buat fast attack tanpa stop.
         local nowT = tick()
         local animFresh = (nowT - killerLastAnimTime) < CFG.parryAnimWindow
-        -- Facing dot: 1.0 = killer hadap persis ke gw; 0 = sudut 90°; <0 = mbelakang
+        -- Facing dot
         local toMe = (myRoot.Position - killerHRP.Position)
         local toMeFlat = Vector3.new(toMe.X, 0, toMe.Z)
         local mag = toMeFlat.Magnitude
@@ -1687,20 +1707,26 @@ task.spawn(function()
             local lookFlat = Vector3.new(killerLook.X, 0, killerLook.Z).Unit
             facingDot = lookFlat:Dot(toMeFlat / mag)
         end
-        local facingMe = facingDot > CFG.parryFacingDot
-        if not (animFresh and facingMe) then
+        -- Killer velocity (flat, abaikan jatuh/lompat)
+        local kvel = killerHRP.AssemblyLinearVelocity
+        local kspeedFlat = math.sqrt(kvel.X * kvel.X + kvel.Z * kvel.Z)
+        local stopDetect = (kspeedFlat < 3) and (kd <= 5.5) and (facingDot > 0.7)
+        local animDetect = animFresh and (facingDot > CFG.parryFacingDot)
+        local fireMode = stopDetect and "STOP" or (animDetect and "ANIM" or nil)
+        if not fireMode then
             dbgParry("dist=" .. string.format("%.1f", kd)
+                .. " spd=" .. string.format("%.1f", kspeedFlat)
                 .. " anim=" .. tostring(animFresh)
-                .. " face=" .. string.format("%.2f", facingDot) .. " (need anim+face>" .. CFG.parryFacingDot .. ")")
+                .. " face=" .. string.format("%.2f", facingDot))
             continue
         end
-        local fireMode = "REACT"
         lastLogReason = ""
 
         -- FIRE RMB CLICK (instant, bukan hold — game treat parry sbg single-shot reactive action)
         -- Previous session evidence: click DID trigger parry. Hold malah breakin input.
         lastParryFire = now
         dbgParry("FIRE [" .. fireMode .. "] → kd=" .. string.format("%.1f", kd)
+            .. " spd=" .. string.format("%.1f", kspeedFlat)
             .. " face=" .. string.format("%.2f", facingDot))
         local _m2c   = rawget(getfenv(), "mouse2click")
         local _m2p   = rawget(getfenv(), "mouse2press")
