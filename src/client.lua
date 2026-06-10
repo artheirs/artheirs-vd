@@ -1065,9 +1065,9 @@ LP.CharacterAdded:Connect(function()
 end)
 
 -- ── No Skill Check ─────────────────────────────────────────
--- Probe finding (2026-06-10): PlayerGui.SkillCheckPromptGui.Check Frame Visible→true
--- saat skill check muncul. User press Space ~0.82-0.88s pasca-appear → GREAT zone
--- buff (repairboost=1.03, skillcheckspeed=0.95). Auto-tap dengan timing sama.
+-- [DISABLED 2026-06-10 — bisect crash investigation; re-enable setelah confirm safe]
+-- Probe finding: PlayerGui.SkillCheckPromptGui.Check Frame Visible→true saat skill check.
+--[[
 task.spawn(function()
     local PG = LP:WaitForChild("PlayerGui", 30)
     if not PG then return end
@@ -1076,7 +1076,6 @@ task.spawn(function()
     local checkFrame = promptGui:WaitForChild("Check", 30)
     if not checkFrame then return end
 
-    -- Anti-double-fire flag (Visible bisa flip beberapa kali per check)
     local firingForThisCheck = false
 
     checkFrame:GetPropertyChangedSignal("Visible"):Connect(function()
@@ -1089,10 +1088,8 @@ task.spawn(function()
         if firingForThisCheck then return end
         firingForThisCheck = true
 
-        -- Delay sampe needle masuk GREAT zone, ±jitter biar look natural
         local delay = CFG.skillCheckDelay + (math.random() * 2 - 1) * CFG.skillCheckJitter
         task.delay(delay, function()
-            -- Re-check: still visible + toggle masih ON
             if not checkFrame.Visible then return end
             if not CFG.noSkillCheckEnabled then return end
             if getRole() ~= "Survivor" then return end
@@ -1102,6 +1099,7 @@ task.spawn(function()
         end)
     end)
 end)
+--]]
 
 -- ── Auto Escape ────────────────────────────────────────────
 -- Pas Survivor deket gen, kalau killer mendekat (< escapeDistance studs)
@@ -2270,9 +2268,7 @@ LP.CharacterAdded:Connect(function(c) task.wait(0.2); attachAntiStun(c) end)
 if LP.Character then attachAntiStun(LP.Character) end
 
 -- ── Heartbeat override aktif selama stun window (2s pasca-deteksi).
--- Frequency 60Hz biar lebih cepat dari server replication tick (~30Hz):
--- server set IsStunned=true / WalkSpeed=0 / inject BodyVelocity → frame berikutnya kita reset.
--- Loop idle (early return) saat di luar window → ga ada CPU cost saat ga stun.
+-- Frequency 60Hz biar lebih cepat dari server replication tick (~30Hz).
 RunService.Heartbeat:Connect(function()
     if tick() >= stunWindowUntil then return end
     if not antiStunActive() then return end
@@ -2288,7 +2284,6 @@ RunService.Heartbeat:Connect(function()
         pcall(function() h.WalkSpeed = targetWalkSpeed() end)
     end
     removeStunBodyMovers(c)
-    -- Kill stun anims yang re-play
     local animator = c:FindFirstChildOfClass("Animator")
     if animator then
         for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
