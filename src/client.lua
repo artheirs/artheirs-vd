@@ -263,7 +263,72 @@ local CFG = {
 
     -- Nama EXACT Generator Model di workspace (case-sensitive, edit jika perlu)
     genNames = {"Generator"},
+
+    -- ── PERFORMANCE TIER (auto-detect at startup, override "low"/"mid"/"high")
+    -- Multiplier scales SEMUA `*Tick` values di CFG di atas:
+    --   low  = ×2.0 (slow polling, save CPU buat PC kentang)
+    --   mid  = ×1.0 (default)
+    --   high = ×0.7 (snappy, untuk gaming PC)
+    perfTier       = "auto",  -- "auto" / "low" / "mid" / "high"
+    perfMultiplier = 1.0,     -- auto-set oleh applyPerfTier()
 }
+
+-- ============================================================
+--  STEP 0.5: PERF TIER AUTO-DETECT + TICK SCALING
+--  Tujuan: 1 setting yang scale semua polling rate berdasarkan
+--  device. Loop pakai task.wait(CFG.xTick) → re-read CFG tiap
+--  iter, jadi modifikasi CFG di sini langsung affect semua loop.
+-- ============================================================
+local RunService = game:GetService("RunService")
+
+local _origTicks = {}  -- backup original values biar bisa re-apply tier
+local function _backupOrigTicks()
+    if next(_origTicks) then return end
+    for k, v in pairs(CFG) do
+        if type(k) == "string" and type(v) == "number" and k:sub(-4) == "Tick" then
+            _origTicks[k] = v
+        end
+    end
+end
+
+local function applyPerfTier(tier)
+    _backupOrigTicks()
+    local m = ({ low = 2.0, mid = 1.0, high = 0.7 })[tier] or 1.0
+    CFG.perfTier       = tier
+    CFG.perfMultiplier = m
+    for k, orig in pairs(_origTicks) do
+        CFG[k] = orig * m
+    end
+    print(string.format("[Artheirs] Perf tier = %s (×%.2f) — %d tick values scaled",
+        tier, m, (function() local c=0; for _ in pairs(_origTicks) do c=c+1 end; return c end)()))
+end
+
+-- Auto-detect: sample Heartbeat delta 60 frame (~1 detik), klasifikasi
+task.spawn(function()
+    if CFG.perfTier ~= "auto" then
+        applyPerfTier(CFG.perfTier)
+        return
+    end
+    -- Warmup biar baseline stabil
+    task.wait(2)
+    local sum, n = 0, 60
+    for _ = 1, n do
+        local t0 = os.clock()
+        RunService.Heartbeat:Wait()
+        sum = sum + (os.clock() - t0)
+    end
+    local avgMs = (sum / n) * 1000
+    -- Heartbeat target 60Hz = 16.67ms. >25ms = low spec (<40fps), >18 = mid, else high.
+    local tier
+    if avgMs > 25 then tier = "low"
+    elseif avgMs > 18 then tier = "mid"
+    else tier = "high" end
+    print(string.format("[Artheirs] Frame benchmark: avg %.2f ms → tier=%s", avgMs, tier))
+    applyPerfTier(tier)
+end)
+
+-- Export ke namespace global (opsional) — biar user bisa override via chat command nanti
+_G.ArtheirsApplyPerfTier = applyPerfTier
 
 -- ============================================================
 --  STEP 1: ROLE DETECTION + CACHE
@@ -322,6 +387,72 @@ LP.CharacterAdded:Connect(function(char)
         end
     end)
 end)
+
+-- ============================================================
+--  STEP 1.5: LOCAL-PLAYER CHARACTER CACHE
+--  Cache Humanoid / HumanoidRootPart / Animator + Camera supaya
+--  polling loop ga panggil FindFirstChild tiap iter (mahal: walks
+--  child list). Refreshed reactively via CharacterAdded +
+--  ChildAdded. Fallback ke fresh lookup kalau cache invalid.
+-- ============================================================
+local _lpChar, _lpHum, _lpHRP, _lpAnimator = nil, nil, nil, nil
+local _Camera = workspace.CurrentCamera
+
+local function _refreshLPCache(char)
+    _lpChar, _lpHum, _lpHRP, _lpAnimator = char, nil, nil, nil
+    if not char then return end
+    _lpHum = char:FindFirstChildOfClass("Humanoid")
+    _lpHRP = char:FindFirstChild("HumanoidRootPart")
+    if _lpHum then
+        _lpAnimator = _lpHum:FindFirstChildOfClass("Animator")
+    end
+    -- Watch for late-loaded children (Humanoid/HRP kadang load setelah CharacterAdded)
+    char.ChildAdded:Connect(function(c)
+        if c:IsA("Humanoid") then
+            _lpHum = c
+            _lpAnimator = c:FindFirstChildOfClass("Animator") or _lpAnimator
+            c.ChildAdded:Connect(function(cc)
+                if cc:IsA("Animator") then _lpAnimator = cc end
+            end)
+        elseif c.Name == "HumanoidRootPart" and c:IsA("BasePart") then
+            _lpHRP = c
+        end
+    end)
+    if _lpHum then
+        _lpHum.ChildAdded:Connect(function(c)
+            if c:IsA("Animator") then _lpAnimator = c end
+        end)
+    end
+end
+
+LP.CharacterAdded:Connect(_refreshLPCache)
+if LP.Character then _refreshLPCache(LP.Character) end
+
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    _Camera = workspace.CurrentCamera
+end)
+
+-- Accessors (cache-first dengan parent-check guard; fallback fresh)
+local function getMyHRP()
+    if _lpHRP and _lpHRP.Parent then return _lpHRP end
+    local c = LP.Character
+    _lpHRP = c and c:FindFirstChild("HumanoidRootPart") or nil
+    return _lpHRP
+end
+
+local function getMyHum()
+    if _lpHum and _lpHum.Parent then return _lpHum end
+    local c = LP.Character
+    _lpHum = c and c:FindFirstChildOfClass("Humanoid") or nil
+    return _lpHum
+end
+
+local function getMyAnimator()
+    if _lpAnimator and _lpAnimator.Parent then return _lpAnimator end
+    local hum = getMyHum()
+    _lpAnimator = hum and hum:FindFirstChildOfClass("Animator") or nil
+    return _lpAnimator
+end
 
 -- Inisialisasi pertama
 roleCache = computeRole()
@@ -1484,6 +1615,7 @@ local function isPlayerInjured(p)
 end
 
 local function getCharRoot(p)
+    if p == LP then return getMyHRP() end
     local c = p and p.Character
     return c and c:FindFirstChild("HumanoidRootPart")
 end
@@ -1883,6 +2015,7 @@ do
 
 -- ── Helpers ────────────────────────────────────────────────
 local function getCharRoot(p)
+    if p == LP then return getMyHRP() end
     local c = p and p.Character
     return c and c:FindFirstChild("HumanoidRootPart")
 end
@@ -2344,10 +2477,10 @@ RunService.Heartbeat:Connect(function()
     if tick() >= stunWindowUntil then return end
     if not antiStunActive() then return end
     if getRole() ~= "Killer" then return end
-    local c = LP.Character
-    if not c then return end
-    local h = c:FindFirstChildOfClass("Humanoid")
+    local h = getMyHum()
     if not h then return end
+    local c = _lpChar or LP.Character
+    if not c then return end
     if c:GetAttribute("IsStunned") == true then
         pcall(function() c:SetAttribute("IsStunned", false) end)
     end
@@ -2355,7 +2488,7 @@ RunService.Heartbeat:Connect(function()
         pcall(function() h.WalkSpeed = targetWalkSpeed() end)
     end
     removeStunBodyMovers(c)
-    local animator = c:FindFirstChildOfClass("Animator")
+    local animator = getMyAnimator()
     if animator then
         for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
             if track.Animation and STUN_ANIM_IDS[track.Animation.AnimationId] then
@@ -2371,9 +2504,7 @@ task.spawn(function()
         task.wait(CFG.antiStunTick)
         if not antiStunActive() then continue end
         if getRole() ~= "Killer" then continue end
-        local c = LP.Character
-        if not c then continue end
-        local hum = c:FindFirstChild("Humanoid")
+        local hum = getMyHum()
         if hum then fixStunState(hum) end
     end
 end)
@@ -2490,25 +2621,28 @@ LP.ChildAdded:Connect(function(c)
     if c:IsA("PlayerGui") then scanPlayerGui(c) end
 end)
 
--- Backup polling — kalau hook miss (object replaced, etc)
+-- Backup polling — RUN HANYA saat fitur aktif (gate sebelum task.wait biar idle = 0 cost)
+-- + interval naik ke 1.5s (DescendantAdded udah handle realtime; ini cuma safety net)
 task.spawn(function()
     while true do
-        task.wait(0.2)
-        if not CFG.antiFlashlightEnabled then continue end
-        if getRole() ~= "Killer" then continue end
-        local pg = LP:FindFirstChildOfClass("PlayerGui")
-        if pg then
-            for _, d in ipairs(pg:GetDescendants()) do
-                if isBlindObject(d) and not neutralizedBlind[d] then
-                    neutralizeBlind(d)
+        if CFG.antiFlashlightEnabled and getRole() == "Killer" then
+            task.wait(1.5)
+            local pg = LP:FindFirstChildOfClass("PlayerGui")
+            if pg then
+                for _, d in ipairs(pg:GetDescendants()) do
+                    if isBlindObject(d) and not neutralizedBlind[d] then
+                        neutralizeBlind(d)
+                    end
                 end
             end
-        end
-        -- Legacy PostEffect sweep
-        for _, container in ipairs({Lighting, workspace.CurrentCamera, LP.Character}) do
-            if container then
-                for _, ef in ipairs(container:GetChildren()) do killPostEffect(ef) end
+            -- Legacy PostEffect sweep
+            for _, container in ipairs({Lighting, workspace.CurrentCamera, LP.Character}) do
+                if container then
+                    for _, ef in ipairs(container:GetChildren()) do killPostEffect(ef) end
+                end
             end
+        else
+            task.wait(2.0)  -- idle: cek toggle tiap 2s aja, hampir 0 cost
         end
     end
 end)
