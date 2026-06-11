@@ -2403,6 +2403,48 @@ local function attachAntiStun(char)
         end
     end))
 
+    -- ── 1b. Knocked attribute (gun-specific signal — confirmed via Probe_AntiShootStun)
+    -- Beberapa survivor weapon (gun/revolver) set Knocked = true alih-alih IsStunned.
+    -- Handler ini identik dengan IsStunned, tapi gate khusus anti-shoot.
+    table.insert(stunConns, char:GetAttributeChangedSignal("Knocked"):Connect(function()
+        if getRole() ~= "Killer" then return end
+        if not CFG.antiShootStunEnabled then return end
+        if char:GetAttribute("Knocked") == true then
+            openStunWindow()
+            pcall(function() char:SetAttribute("Knocked", false) end)
+            removeStunBodyMovers(char)
+            pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
+        end
+    end))
+
+    -- ── 1c. Aggressive re-force during window — counter server replication
+    -- yang push attribute true→true (AttributeChangedSignal ga fire untuk same-value
+    -- update). Polling loop 20Hz selama window aktif force semua attribute back ke false.
+    table.insert(stunConns, task.spawn(function()
+        while char.Parent do
+            task.wait(0.05)
+            if tick() < stunWindowUntil and getRole() == "Killer" then
+                if not (CFG.antiPalletStunEnabled or CFG.antiFlashlightEnabled or CFG.antiShootStunEnabled) then continue end
+                -- Force false bahkan kalau ga ada signal fire (idempotent)
+                if char:GetAttribute("IsStunned") == true then
+                    pcall(function() char:SetAttribute("IsStunned", false) end)
+                end
+                if CFG.antiShootStunEnabled and char:GetAttribute("Knocked") == true then
+                    pcall(function() char:SetAttribute("Knocked", false) end)
+                end
+                -- Re-restore WalkSpeed kalau game tween-back ke 0
+                if hum.WalkSpeed < 12 then
+                    pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
+                end
+                -- Un-anchor HRP defensive (kalau gun lock via Anchored)
+                if hrp and hrp.Anchored then
+                    pcall(function() hrp.Anchored = false end)
+                end
+                removeStunBodyMovers(char)
+            end
+        end
+    end))
+
     -- ── 2. Immobile attribute → force false HANYA kalau Vault anim aktif
     -- (anti-false-positive untuk self-action attack/carry/kick)
     local vaultActive = false
