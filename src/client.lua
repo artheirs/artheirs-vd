@@ -2403,23 +2403,11 @@ local function attachAntiStun(char)
         end
     end))
 
-    -- ── 1b. Knocked attribute (gun-specific signal — confirmed via Probe_AntiShootStun)
-    -- Beberapa survivor weapon (gun/revolver) set Knocked = true alih-alih IsStunned.
-    -- Handler ini identik dengan IsStunned, tapi gate khusus anti-shoot.
-    table.insert(stunConns, char:GetAttributeChangedSignal("Knocked"):Connect(function()
-        if getRole() ~= "Killer" then return end
-        if not CFG.antiShootStunEnabled then return end
-        if char:GetAttribute("Knocked") == true then
-            openStunWindow()
-            pcall(function() char:SetAttribute("Knocked", false) end)
-            removeStunBodyMovers(char)
-            pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
-        end
-    end))
-
-    -- NOTE: Polling 20Hz untuk re-force selama window di-DELEGATE ke
-    -- existing heartbeat loop di STEP 6.15 (line ~2370). Jangan task.spawn
-    -- di sini — bikin thread leak per respawn yang trigger Xeno crash.
+    -- ── 1b. (DISABLED 2026-06-11) Knocked attribute watcher.
+    -- Crash investigation: SetAttribute("Knocked", false) di shoot scenario
+    -- bikin crash (kemungkinan server anti-cheat detect attribute spam atau
+    -- game ga punya Knocked attribute valid → write bikin state corruption).
+    -- Mekanisme gun stun perlu probe ulang dengan marker BEFORE stun (bukan after).
 
     -- ── 2. Immobile attribute → force false HANYA kalau Vault anim aktif
     -- (anti-false-positive untuk self-action attack/carry/kick)
@@ -2517,10 +2505,8 @@ RunService.Heartbeat:Connect(function()
     if c:GetAttribute("IsStunned") == true then
         pcall(function() c:SetAttribute("IsStunned", false) end)
     end
-    -- Knocked attribute (gun-specific, ke-confirm via Probe_AntiShootStun)
-    if CFG.antiShootStunEnabled and c:GetAttribute("Knocked") == true then
-        pcall(function() c:SetAttribute("Knocked", false) end)
-    end
+    -- (DISABLED) Knocked attribute reset — bikin crash di shoot scenario.
+    -- Perlu probe ulang dengan marker BEFORE stun untuk identify mekanisme yang aman.
     if h.WalkSpeed > 0 and h.WalkSpeed < 12 then
         pcall(function() h.WalkSpeed = targetWalkSpeed() end)
     end
