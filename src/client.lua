@@ -2391,12 +2391,38 @@ local function attachAntiStun(char)
     local hrp = char:FindFirstChild("HumanoidRootPart")
 
     -- ── 1. IsStunned attribute → force false + remove BodyVelocity
-    -- (Pallet, Flashlight, Shoot stun — share signature)
+    -- (Pallet, Flashlight, Shoot stun — share signature, beda treatment)
+    --
+    -- 2026-06-11 update: SHOOT scenario (Knocked=true saat IsStunned fire) → DELAY 200ms
+    -- override + skip heartbeat. Sebelumnya immediate override bikin crash karena
+    -- server chain (bullet physics / camera / network ACK) ke-interrupt mid-way.
+    -- Delay 200ms = chain server complete dulu, baru kita lift stun → safe.
     table.insert(stunConns, char:GetAttributeChangedSignal("IsStunned"):Connect(function()
         if getRole() ~= "Killer" then return end
         if not (CFG.antiPalletStunEnabled or CFG.antiFlashlightEnabled or CFG.antiShootStunEnabled) then return end
-        if char:GetAttribute("IsStunned") == true then
-            openStunWindow()  -- buka window override 2s
+        if char:GetAttribute("IsStunned") ~= true then return end
+
+        -- READ-ONLY check (jangan write Knocked — itu yang bikin crash sebelumnya)
+        local isShoot = (char:GetAttribute("Knocked") == true)
+
+        if isShoot then
+            if not CFG.antiShootStunEnabled then return end
+            -- Shoot path: delayed single-shot override (ga heartbeat-spam)
+            task.delay(0.2, function()
+                if not char.Parent then return end
+                if char:GetAttribute("IsStunned") == true then
+                    pcall(function() char:SetAttribute("IsStunned", false) end)
+                end
+                removeStunBodyMovers(char)
+                if hum and hum.Parent then
+                    pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
+                end
+            end)
+            -- NOTE: openStunWindow() TIDAK dipanggil di shoot path → heartbeat 60Hz
+            -- tidak akan re-force false → cegah crash via attribute write war.
+        else
+            -- Pallet/flash path: immediate (existing behavior, work, jangan diubah)
+            openStunWindow()
             pcall(function() char:SetAttribute("IsStunned", false) end)
             removeStunBodyMovers(char)
             pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
