@@ -2417,33 +2417,9 @@ local function attachAntiStun(char)
         end
     end))
 
-    -- ── 1c. Aggressive re-force during window — counter server replication
-    -- yang push attribute true→true (AttributeChangedSignal ga fire untuk same-value
-    -- update). Polling loop 20Hz selama window aktif force semua attribute back ke false.
-    table.insert(stunConns, task.spawn(function()
-        while char.Parent do
-            task.wait(0.05)
-            if tick() < stunWindowUntil and getRole() == "Killer" then
-                if not (CFG.antiPalletStunEnabled or CFG.antiFlashlightEnabled or CFG.antiShootStunEnabled) then continue end
-                -- Force false bahkan kalau ga ada signal fire (idempotent)
-                if char:GetAttribute("IsStunned") == true then
-                    pcall(function() char:SetAttribute("IsStunned", false) end)
-                end
-                if CFG.antiShootStunEnabled and char:GetAttribute("Knocked") == true then
-                    pcall(function() char:SetAttribute("Knocked", false) end)
-                end
-                -- Re-restore WalkSpeed kalau game tween-back ke 0
-                if hum.WalkSpeed < 12 then
-                    pcall(function() hum.WalkSpeed = targetWalkSpeed() end)
-                end
-                -- Un-anchor HRP defensive (kalau gun lock via Anchored)
-                if hrp and hrp.Anchored then
-                    pcall(function() hrp.Anchored = false end)
-                end
-                removeStunBodyMovers(char)
-            end
-        end
-    end))
+    -- NOTE: Polling 20Hz untuk re-force selama window di-DELEGATE ke
+    -- existing heartbeat loop di STEP 6.15 (line ~2370). Jangan task.spawn
+    -- di sini — bikin thread leak per respawn yang trigger Xeno crash.
 
     -- ── 2. Immobile attribute → force false HANYA kalau Vault anim aktif
     -- (anti-false-positive untuk self-action attack/carry/kick)
@@ -2526,8 +2502,17 @@ RunService.Heartbeat:Connect(function()
     if c:GetAttribute("IsStunned") == true then
         pcall(function() c:SetAttribute("IsStunned", false) end)
     end
+    -- Knocked attribute (gun-specific, ke-confirm via Probe_AntiShootStun)
+    if CFG.antiShootStunEnabled and c:GetAttribute("Knocked") == true then
+        pcall(function() c:SetAttribute("Knocked", false) end)
+    end
     if h.WalkSpeed > 0 and h.WalkSpeed < 12 then
         pcall(function() h.WalkSpeed = targetWalkSpeed() end)
+    end
+    -- HRP Anchored defensive (kalau gun lock via Anchored)
+    local hrp = c:FindFirstChild("HumanoidRootPart")
+    if hrp and hrp.Anchored then
+        pcall(function() hrp.Anchored = false end)
     end
     removeStunBodyMovers(c)
     local animator = getMyAnimator()
